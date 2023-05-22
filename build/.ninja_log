@@ -1,0 +1,15 @@
+# ninja log v5
+27	63	7053429595940239	project_elf_src_esp32.c	6acc5e2d628037a4
+27	63	7053429595940239	C:/Users/joel-/Documents/PlatformIO/Projects/Gateway/twomes-p1-gateway-firmware/build/project_elf_src_esp32.c	6acc5e2d628037a4
+32	90	7053429596119619	esp-idf/esp_system/ld/memory.ld	f79c3dd222234710
+32	90	7053429596119619	C:/Users/joel-/Documents/PlatformIO/Projects/Gateway/twomes-p1-gateway-firmware/build/esp-idf/esp_system/ld/memory.ld	f79c3dd222234710
+138	426	7053429599408614	esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/camellia.c.obj	6fd0ade95caedd88
+38	434	7053429596887070	partition_table/partition-table.bin	72875e36b25a7fac
+38	434	7053429596887070	C:/Users/joel-/Documents/PlatformIO/Projects/Gateway/twomes-p1-gateway-firmware/build/partition_table/partition-table.bin	72875e36b25a7fac
+90	438	7053429599578046	esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/aesni.c.obj	969f2a8fe4d04f8a
+97	572	7053429600963415	esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/aes.c.obj	33d8a3cdf40fe575
+107	573	7053429600953443	esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/asn1parse.c.obj	957b8099294c697
+125	602	7053429601102946	esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/asn1write.c.obj	eef555f322416196
+132	639	7053429601641149	esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/base64.c.obj	4bd7923066397cca
+115	695	7053429602215904	esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/aria.c.obj	52c487c29c598c47
+102	1103	7053429606232947	esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/bignum.c.obj	f87c496d39c7ef9c
