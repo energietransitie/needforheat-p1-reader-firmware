@@ -10,5 +10,7 @@
 #include <esp_err.h>
 #include <iostream> 
 
+#include <scheduler.hpp>
+
 time_t timestampFormatted(const char* timeString);
 tm *setHours(tm *timeStruct);

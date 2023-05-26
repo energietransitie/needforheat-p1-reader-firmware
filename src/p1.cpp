@@ -21,8 +21,8 @@ void readP1Task(void *taskInfo) {
 	Measurements::Measurement::AddFormatter("e_ret_hi_cum__kWh", "%4.3f");
 	Measurements::Measurement::AddFormatter("g_use_cum__m3", "%7.3f"); 
 
-	//ofline testing
-	//timestampFormatted("230524100224S");
+	//offline testing
+	//timestampFormatted("230526161924S");
 
     P1Data result = p1Read();
 
