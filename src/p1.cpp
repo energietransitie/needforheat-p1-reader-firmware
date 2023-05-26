@@ -2,12 +2,13 @@
 #include <string.h>
 #include <p1.hpp>
 #include <P1Config.h>
+#include <timestamp.hpp>
 
 //ESP-IDF drivers:
 #include <scheduler.hpp>
 #include <secure_upload.hpp>
 #include <measurements.hpp>
-#include <util/error.hpp>
+#include <util/error.hpp> 
 
 auto secureUploadQueue = SecureUpload::Queue::GetInstance();
 
@@ -18,32 +19,27 @@ void readP1Task(void *taskInfo) {
 	Measurements::Measurement::AddFormatter("e_use_hi_cum__kWh", "%4.3f");
 	Measurements::Measurement::AddFormatter("e_ret_lo_cum__kWh", "%4.3f");
 	Measurements::Measurement::AddFormatter("e_ret_hi_cum__kWh", "%4.3f");
-	Measurements::Measurement::AddFormatter("g_use_cum__m3", "%7.3f");
-	Measurements::Measurement::AddFormatter("eMeterReadingTimestamp", "%s");
-	Measurements::Measurement::AddFormatter("gMeterReadingTimestamp", "%s");   
+	Measurements::Measurement::AddFormatter("g_use_cum__m3", "%7.3f"); 
+
+	//ofline testing
+	//timestampFormatted("230524100224S");
 
     P1Data result = p1Read();
-    
-	Measurements::Measurement eMeterReadingSupplyLow("e_use_lo_cum__kWh", result.elecUsedT1);
+
+	Measurements::Measurement eMeterReadingSupplyLow("e_use_lo_cum__kWh", result.elecUsedT1, timestampFormatted(result.timeElecMeasurement));
 	secureUploadQueue.AddMeasurement(eMeterReadingSupplyLow);
 
-    Measurements::Measurement eMeterReadingSupplyHigh("e_use_hi_cum__kWh", result.elecUsedT2);
+    Measurements::Measurement eMeterReadingSupplyHigh("e_use_hi_cum__kWh", result.elecUsedT2, timestampFormatted(result.timeElecMeasurement));
 	secureUploadQueue.AddMeasurement(eMeterReadingSupplyHigh);
 
-    Measurements::Measurement eMeterReadingReturnLow("e_ret_lo_cum__kWh", result.elecDeliveredT1);
+    Measurements::Measurement eMeterReadingReturnLow("e_ret_lo_cum__kWh", result.elecDeliveredT1, timestampFormatted(result.timeElecMeasurement));
 	secureUploadQueue.AddMeasurement(eMeterReadingReturnLow);
 
-    Measurements::Measurement eMeterReadingReturnHigh("e_ret_hi_cum__kWh", result.elecDeliveredT2);
+    Measurements::Measurement eMeterReadingReturnHigh("e_ret_hi_cum__kWh", result.elecDeliveredT2, timestampFormatted(result.timeElecMeasurement));
 	secureUploadQueue.AddMeasurement(eMeterReadingReturnHigh);
 
-    Measurements::Measurement gMeterReadingSupply("g_use_cum__m3", result.gasUsage);
+    Measurements::Measurement gMeterReadingSupply("g_use_cum__m3", result.gasUsage, timestampFormatted(result.timeGasMeasurement));
 	secureUploadQueue.AddMeasurement(gMeterReadingSupply);
-
-    Measurements::Measurement eMeterReadingTimestamp("eMeterReadingTimestamp", result.timeElecMeasurement);
-	secureUploadQueue.AddMeasurement(eMeterReadingTimestamp);
-
-    Measurements::Measurement gMeterReadingTimestamp("gMeterReadingTimestamp", result.timeGasMeasurement);
-	secureUploadQueue.AddMeasurement(gMeterReadingTimestamp);
 
 }
 

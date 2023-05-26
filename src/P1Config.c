@@ -241,8 +241,6 @@ P1Data p1Read()
     if (!uartInit)
     {
         initP1UART();
-       
-
 	    initGPIO_P1();
         //set baudrate
         uartStartDetectBaudrate();

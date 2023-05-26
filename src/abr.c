@@ -45,7 +45,7 @@ void uartStartDetectBaudrate()
         
     }
 
-    if(detected > 3)
+    if(detected > 10)
     {
         for (uint8_t i = 0; i < detected; i++)
         {
