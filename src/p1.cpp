@@ -22,24 +22,30 @@ void readP1Task(void *taskInfo) {
 	Measurements::Measurement::AddFormatter("g_use_cum__m3", "%7.3f"); 
 
 	//offline testing
-	//timestampFormatted("230526161924S");
+	//parseDsmrTimestamp("230530161324S");
 
     P1Data result = p1Read();
 
-	Measurements::Measurement eMeterReadingSupplyLow("e_use_lo_cum__kWh", result.elecUsedT1, timestampFormatted(result.timeElecMeasurement));
-	secureUploadQueue.AddMeasurement(eMeterReadingSupplyLow);
+	if(!result.dsmrVersion || parseDsmrTimestamp(result.timeGasMeasurement) != -1)//if empyty or if wrong gas values dont upload
+	{
+		Measurements::Measurement eMeterReadingSupplyLow("e_use_lo_cum__kWh", result.elecUsedT1, parseDsmrTimestamp(result.timeElecMeasurement));
+		secureUploadQueue.AddMeasurement(eMeterReadingSupplyLow);
 
-    Measurements::Measurement eMeterReadingSupplyHigh("e_use_hi_cum__kWh", result.elecUsedT2, timestampFormatted(result.timeElecMeasurement));
-	secureUploadQueue.AddMeasurement(eMeterReadingSupplyHigh);
+		Measurements::Measurement eMeterReadingSupplyHigh("e_use_hi_cum__kWh", result.elecUsedT2, parseDsmrTimestamp(result.timeElecMeasurement));
+		secureUploadQueue.AddMeasurement(eMeterReadingSupplyHigh);
 
-    Measurements::Measurement eMeterReadingReturnLow("e_ret_lo_cum__kWh", result.elecDeliveredT1, timestampFormatted(result.timeElecMeasurement));
-	secureUploadQueue.AddMeasurement(eMeterReadingReturnLow);
+		Measurements::Measurement eMeterReadingReturnLow("e_ret_lo_cum__kWh", result.elecDeliveredT1, parseDsmrTimestamp(result.timeElecMeasurement));
+		secureUploadQueue.AddMeasurement(eMeterReadingReturnLow);
 
-    Measurements::Measurement eMeterReadingReturnHigh("e_ret_hi_cum__kWh", result.elecDeliveredT2, timestampFormatted(result.timeElecMeasurement));
-	secureUploadQueue.AddMeasurement(eMeterReadingReturnHigh);
+		Measurements::Measurement eMeterReadingReturnHigh("e_ret_hi_cum__kWh", result.elecDeliveredT2, parseDsmrTimestamp(result.timeElecMeasurement));
+		secureUploadQueue.AddMeasurement(eMeterReadingReturnHigh);
 
-    Measurements::Measurement gMeterReadingSupply("g_use_cum__m3", result.gasUsage, timestampFormatted(result.timeGasMeasurement));
-	secureUploadQueue.AddMeasurement(gMeterReadingSupply);
-
+		Measurements::Measurement gMeterReadingSupply("g_use_cum__m3", result.gasUsage, parseDsmrTimestamp(result.timeGasMeasurement));
+		secureUploadQueue.AddMeasurement(gMeterReadingSupply);
+	}
+	else
+	{
+		ESP_LOGI("P1", "incorrect or no p1 message");
+	}
 }
 

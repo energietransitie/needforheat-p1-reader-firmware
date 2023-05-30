@@ -12,5 +12,5 @@
 
 #include <scheduler.hpp>
 
-time_t timestampFormatted(const char* timeString);
+time_t parseDsmrTimestamp(const char* dsmrTimestamp);
 tm *setHours(tm *timeStruct);

@@ -247,9 +247,6 @@ P1Data p1Read()
         uartInit = 1;
     }
 
-  
-    //Read the current time to compensate the delay:
-    int64_t lP1ReadStartTime = esp_timer_get_time();
     //create struct
     P1Data p1Measurements;
     //Empty the buffer before requesting data to clear it of junk
@@ -334,17 +331,13 @@ P1Data p1Read()
         }
     } else if(uartDataSize == -1) {
         ESP_LOGI("P1", "No UART data found");
+
     }
     else{
         ESP_LOGI("P1", "No P1 message was found");
     }
     //Release the data from the memory buffer:
     free(data);
-
-    int64_t lTimeAfterP1Read = esp_timer_get_time();
-    int64_t lTimeDiffMilliSeconds = (lTimeAfterP1Read - lP1ReadStartTime) / 1000;
-
-    vTaskDelay((P1_MEASUREMENT_INTERVAL_MS - lTimeDiffMilliSeconds) / portTICK_PERIOD_MS); //This should be calibrated to check for the time spent calculating the data
 
     return p1Measurements;
 
