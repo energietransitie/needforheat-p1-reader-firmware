@@ -63,11 +63,11 @@ void uartStartDetectBaudrate()
         }
         
         ESP_LOGI("Baudrate", "found %d us", baudrate);
-        if (baudrate < 100)// < 100 us
+        if (baudrate < 56)// < 56 us
         {
             baudrate = 115200;
         }
-        else if (baudrate >= 100 && baudrate < 1000)// > 100 us && < 1ms
+        else if (baudrate >= 56 && baudrate < 1000)// > 56 us && < 1ms
         {
             baudrate = 9600;
         }

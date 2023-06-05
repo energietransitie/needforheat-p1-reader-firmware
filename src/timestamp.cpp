@@ -24,23 +24,20 @@ time_t parseDsmrTimestamp(const char* dsmrTimestamp)
 
         strptime(formattedString, "%y-%m-%d %H:%M:%S", &timeStruct); //break up the string into a struct
         
-        timeStruct.__TM_ZONE = TIMEZONE;
 
         if (dsmrTimestamp[12] == 'S')
         {
-            timeStruct.__TM_GMTOFF = 02;//offset hours compared to utc
             timeStruct.tm_isdst = 1;
         }
         else if (dsmrTimestamp[12] == 'W')
         {
-            timeStruct.__TM_GMTOFF = 01;//offset hours compared to utc
             timeStruct.tm_isdst = 0;
         }
         
         
 
         strftime(isoBuffer,sizeof isoBuffer, "%FT%T", &timeStruct);
-        ESP_LOGI("Time","Smart meter ISO8601 timestamp: %s+%d00", isoBuffer, timeStruct.__TM_GMTOFF);
+        uint8_t offset = timeStruct.tm_hour;
 
         if (timeStruct.tm_mon <= 12 && timeStruct.tm_mday <=31 && timeStruct.tm_hour < 24 && timeStruct.tm_min < 60 && timeStruct.tm_sec < 60)//if date has no overflow
         {
@@ -50,6 +47,13 @@ time_t parseDsmrTimestamp(const char* dsmrTimestamp)
         {
             return t = -1;
         }
+
+        offset -= timeStruct.tm_hour;
+        if(offset > 2)
+        {
+            offset /= 100;
+        }
+        ESP_LOGI("Time","Smart meter ISO8601 timestamp: %s+0%d00", isoBuffer, offset);
         
     }
     else
@@ -57,7 +61,7 @@ time_t parseDsmrTimestamp(const char* dsmrTimestamp)
         t = Scheduler::GetCurrentTaskTime();//use the scheduler time because theres no available time
     }
 
-    strftime(isoBuffer, sizeof isoBuffer, "%FT%T%z", gmtime(&t));
+    strftime(isoBuffer, sizeof isoBuffer, "%FT%TZ", gmtime(&t));
     ESP_LOGI("Time","ISO8601 timestamp: %s", isoBuffer);
     
     ESP_LOGI("Time","Unix timestamp: %jd\n", (intmax_t)t);
@@ -74,12 +78,32 @@ tm *setHours(tm *timeStruct)
     struct tm * utcTm;
     utcTm = gmtime(&UTC);
 
-    //parse utc data into dsmr timestamps
-    timeStruct->tm_year = utcTm->tm_year;
-    timeStruct->tm_mon = utcTm->tm_mon;
-    timeStruct->tm_mday = utcTm->tm_mday;
-    timeStruct->tm_hour = utcTm->tm_hour;
-    timeStruct->tm_isdst = utcTm->tm_isdst; 
+    //get correct hours
+    if(timeStruct->tm_isdst == 1)//summertime DSMR 4/5
+    {
+    timeStruct->tm_hour -= 2;
+    }
+    else if(timeStruct->tm_isdst == 0)//wintertime DSMR 4/5
+    {
+        timeStruct->tm_hour -= 1;
+    }
+    else if(timeStruct->tm_isdst < 0)//DSMR 2/3
+    {
+        if (timeStruct->tm_min >= utcTm->tm_min && timeStruct->tm_sec > utcTm->tm_sec)
+        {
+            timeStruct->tm_hour = utcTm->tm_hour-1;
+        }
+        else
+        {
+            timeStruct->tm_hour = utcTm->tm_hour;
+        }
+        
+        //parse utc data into dsmr timestamps
+        timeStruct->tm_year = utcTm->tm_year;
+        timeStruct->tm_mon = utcTm->tm_mon;
+        timeStruct->tm_mday = utcTm->tm_mday;
+       
+    }
     
     return timeStruct;
 }
