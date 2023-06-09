@@ -3,6 +3,8 @@
 
 #define INPUT_PIN 16
 #define bufferSize 20
+#define threshold_us ((1e6 / 9600 + 1e6 / 115200) / 2)
+#define newBaudrateVersion 1
 
 xQueueHandle interputQueue;
 
@@ -45,6 +47,7 @@ void uartStartDetectBaudrate()
         
     }
 
+
     if(detected > 10)
     {
         for (uint8_t i = 0; i < detected; i++)
@@ -61,22 +64,17 @@ void uartStartDetectBaudrate()
                 }
             }
         }
-        
+
         ESP_LOGI("Baudrate", "found %d us", baudrate);
-        if (baudrate < 56)// < 56 us
-        {
-            baudrate = 115200;
-        }
-        else if (baudrate >= 56 && baudrate < 1000)// > 56 us && < 1ms
-        {
-            baudrate = 9600;
-        }
-        else
-        {
-            baudrate = 0;
-        }
-        ESP_LOGI("Baudrate", "calculated %d", baudrate);
-        uart_set_baudrate(P1PORT_UART_NUM, baudrate);
+        
+        //comment abrc:7 #define newBaudrateVersion to use old version
+        #ifdef newBaudrateVersion
+            uint32_t candidateBaudRates[2] = {9600, 115200};
+            findNearestBaudRate(candidateBaudRates, baudrate);
+        #else
+            setBaudrate(baudrate);
+        #endif
+       
     }
     else
     {
@@ -84,7 +82,7 @@ void uartStartDetectBaudrate()
     }
     uint32_t currentBaud = 0;
     uart_get_baudrate(P1PORT_UART_NUM, &currentBaud);
-    ESP_LOGI("Baudrate", "%d in use", (currentBaud-1));
+    ESP_LOGI("Baudrate", "%d in use", (currentBaud));
     //Write DRQ pin low again (otherwise P1 port keeps transmitting every second);
     gpio_set_level(PIN_DRQ, 1);
 }
@@ -101,4 +99,56 @@ void abrInit()
 
     //gpio_install_isr_service(0);
     gpio_isr_handler_add(INPUT_PIN, gpio_interrupt_handler, (void *)INPUT_PIN);
+}
+
+void setBaudrate(uint32_t baudrate_us)
+{
+    uint32_t threshold__us = threshold_us;
+
+        if (baudrate_us < threshold__us)
+        {
+            baudrate_us = 115200;
+        }
+        else if (baudrate_us >= threshold__us && baudrate_us < 1000)//< 1ms
+        {
+            baudrate_us = 9600;
+        }
+        else
+        {
+            baudrate_us = 0;
+        }
+        ESP_LOGI("Baudrate", "calculated %d", baudrate_us);
+        uart_set_baudrate(P1PORT_UART_NUM, baudrate_us);
+}
+
+uint32_t calculateBitInterval(uint32_t baudrate)
+{
+    return 1e6 / baudrate;
+}
+
+void findNearestBaudRate(uint32_t * candidateBaudRates, uint32_t measuredBaudRate_us)
+{
+    uint32_t nearestBaudRate = candidateBaudRates[0];
+    int smallestDifference = (measuredBaudRate_us - calculateBitInterval(candidateBaudRates[0]));
+
+    for (uint8_t i = 0; i < sizeof(candidateBaudRates); i++)
+    {
+        int difference = (measuredBaudRate_us - calculateBitInterval(candidateBaudRates[i]));
+        ESP_LOGI("Baudrate", "smalest difference = %d", smallestDifference);
+        ESP_LOGI("Baudrate", "difference = %d", difference);
+        if(smallestDifference < 0)
+        {
+            smallestDifference = smallestDifference * -1;
+        }
+        if (difference < smallestDifference)
+        {
+            nearestBaudRate = candidateBaudRates[i];
+            smallestDifference = difference;
+        }
+        ESP_LOGI("Baudrate", "nearest baudrate = %d", nearestBaudRate);
+    }
+
+    ESP_LOGI("Baudrate", "calculated %d", nearestBaudRate);
+
+    uart_set_baudrate(P1PORT_UART_NUM, nearestBaudRate);
 }
