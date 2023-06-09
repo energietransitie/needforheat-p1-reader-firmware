@@ -1,0 +1,88 @@
+-- Found Git: C:/Espressif/tools/idf-git/2.39.2/cmd/git.exe (found version "2.39.2.windows.1") 
+-- ccache will be used for faster recompilation
+-- The C compiler identification is GNU 11.2.0
+-- The CXX compiler identification is GNU 11.2.0
+-- The ASM compiler identification is GNU
+-- Found assembler: C:/Espressif/tools/xtensa-esp32-elf/esp-2022r1-11.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc.exe
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: C:/Espressif/tools/xtensa-esp32-elf/esp-2022r1-11.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc.exe - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: C:/Espressif/tools/xtensa-esp32-elf/esp-2022r1-11.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-g++.exe - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Building ESP-IDF components for target esp32
+-- Project sdkconfig file C:/Users/joel-/Documents/PlatformIO/Projects/Gateway/twomes-p1-gateway-firmware/sdkconfig
+C:/Users/joel-/Documents/PlatformIO/Projects/Gateway/twomes-p1-gateway-firmware/sdkconfig:508 CONFIG_ESP32_DEFAULT_CPU_FREQ_80 was replaced with CONFIG_ESP_DEFAULT_CPU_FREQ_MHZ_80
+C:/Users/joel-/Documents/PlatformIO/Projects/Gateway/twomes-p1-gateway-firmware/sdkconfig:509 CONFIG_ESP32_DEFAULT_CPU_FREQ_160 was replaced with CONFIG_ESP_DEFAULT_CPU_FREQ_MHZ_160
+C:/Users/joel-/Documents/PlatformIO/Projects/Gateway/twomes-p1-gateway-firmware/sdkconfig:510 CONFIG_ESP32_DEFAULT_CPU_FREQ_240 was replaced with CONFIG_ESP_DEFAULT_CPU_FREQ_MHZ_240
+C:/Users/joel-/Documents/PlatformIO/Projects/Gateway/twomes-p1-gateway-firmware/sdkconfig:511 CONFIG_ESP32_DEFAULT_CPU_FREQ_MHZ was replaced with CONFIG_ESP_DEFAULT_CPU_FREQ_MHZ
+C:/Users/joel-/Documents/PlatformIO/Projects/Gateway/twomes-p1-gateway-firmware/sdkconfig:512 CONFIG_ESP32_SPIRAM_SUPPORT was replaced with CONFIG_SPIRAM
+C:/Users/joel-/Documents/PlatformIO/Projects/Gateway/twomes-p1-gateway-firmware/sdkconfig:518 CONFIG_ESP32_ULP_COPROC_ENABLED was replaced with CONFIG_ULP_COPROC_ENABLED
+C:/Users/joel-/Documents/PlatformIO/Projects/Gateway/twomes-p1-gateway-firmware/sdkconfig:519 CONFIG_ESP32_ULP_COPROC_RESERVE_MEM was replaced with CONFIG_ULP_COPROC_RESERVE_MEM
+C:/Users/joel-/Documents/PlatformIO/Projects/Gateway/twomes-p1-gateway-firmware/sdkconfig:520 CONFIG_ESP32_DEBUG_OCDAWARE was replaced with CONFIG_ESP_DEBUG_OCDAWARE
+C:/Users/joel-/Documents/PlatformIO/Projects/Gateway/twomes-p1-gateway-firmware/sdkconfig:521 CONFIG_ESP32_BROWNOUT_DET was replaced with CONFIG_ESP_BROWNOUT_DET
+C:/Users/joel-/Documents/PlatformIO/Projects/Gateway/twomes-p1-gateway-firmware/sdkconfig:522 CONFIG_ESP32_BROWNOUT_DET_LVL_SEL_0 was replaced with CONFIG_ESP_BROWNOUT_DET_LVL_SEL_0
+C:/Users/joel-/Documents/PlatformIO/Projects/Gateway/twomes-p1-gateway-firmware/sdkconfig:523 CONFIG_ESP32_BROWNOUT_DET_LVL_SEL_1 was replaced with CONFIG_ESP_BROWNOUT_DET_LVL_SEL_1
+C:/Users/joel-/Documents/PlatformIO/Projects/Gateway/twomes-p1-gateway-firmware/sdkconfig:524 CONFIG_ESP32_BROWNOUT_DET_LVL_SEL_2 was replaced with CONFIG_ESP_BROWNOUT_DET_LVL_SEL_2
+C:/Users/joel-/Documents/PlatformIO/Projects/Gateway/twomes-p1-gateway-firmware/sdkconfig:525 CONFIG_ESP32_BROWNOUT_DET_LVL_SEL_3 was replaced with CONFIG_ESP_BROWNOUT_DET_LVL_SEL_3
+C:/Users/joel-/Documents/PlatformIO/Projects/Gateway/twomes-p1-gateway-firmware/sdkconfig:526 CONFIG_ESP32_BROWNOUT_DET_LVL_SEL_4 was replaced with CONFIG_ESP_BROWNOUT_DET_LVL_SEL_4
+C:/Users/joel-/Documents/PlatformIO/Projects/Gateway/twomes-p1-gateway-firmware/sdkconfig:527 CONFIG_ESP32_BROWNOUT_DET_LVL_SEL_5 was replaced with CONFIG_ESP_BROWNOUT_DET_LVL_SEL_5
+C:/Users/joel-/Documents/PlatformIO/Projects/Gateway/twomes-p1-gateway-firmware/sdkconfig:528 CONFIG_ESP32_BROWNOUT_DET_LVL_SEL_6 was replaced with CONFIG_ESP_BROWNOUT_DET_LVL_SEL_6
+C:/Users/joel-/Documents/PlatformIO/Projects/Gateway/twomes-p1-gateway-firmware/sdkconfig:529 CONFIG_ESP32_BROWNOUT_DET_LVL_SEL_7 was replaced with CONFIG_ESP_BROWNOUT_DET_LVL_SEL_7
+C:/Users/joel-/Documents/PlatformIO/Projects/Gateway/twomes-p1-gateway-firmware/sdkconfig:530 CONFIG_ESP32_BROWNOUT_DET_LVL was replaced with CONFIG_ESP_BROWNOUT_DET_LVL
+C:/Users/joel-/Documents/PlatformIO/Projects/Gateway/twomes-p1-gateway-firmware/sdkconfig:531 CONFIG_ESP32_REDUCE_PHY_TX_POWER was replaced with CONFIG_ESP_PHY_REDUCE_TX_POWER
+C:/Users/joel-/Documents/PlatformIO/Projects/Gateway/twomes-p1-gateway-firmware/sdkconfig:532 CONFIG_ESP32_TIME_SYSCALL_USE_RTC_FRC1 was replaced with CONFIG_NEWLIB_TIME_SYSCALL_USE_RTC_HRT
+C:/Users/joel-/Documents/PlatformIO/Projects/Gateway/twomes-p1-gateway-firmware/sdkconfig:533 CONFIG_ESP32_TIME_SYSCALL_USE_RTC was replaced with CONFIG_NEWLIB_TIME_SYSCALL_USE_RTC
+C:/Users/joel-/Documents/PlatformIO/Projects/Gateway/twomes-p1-gateway-firmware/sdkconfig:534 CONFIG_ESP32_TIME_SYSCALL_USE_FRC1 was replaced with CONFIG_NEWLIB_TIME_SYSCALL_USE_HRT
+C:/Users/joel-/Documents/PlatformIO/Projects/Gateway/twomes-p1-gateway-firmware/sdkconfig:535 CONFIG_ESP32_TIME_SYSCALL_USE_NONE was replaced with CONFIG_NEWLIB_TIME_SYSCALL_USE_NONE
+C:/Users/joel-/Documents/PlatformIO/Projects/Gateway/twomes-p1-gateway-firmware/sdkconfig:536 CONFIG_ESP32_RTC_CLK_SRC_INT_RC was replaced with CONFIG_RTC_CLK_SRC_INT_RC
+C:/Users/joel-/Documents/PlatformIO/Projects/Gateway/twomes-p1-gateway-firmware/sdkconfig:537 CONFIG_ESP32_RTC_CLK_SRC_EXT_CRYS was replaced with CONFIG_RTC_CLK_SRC_EXT_CRYS
+C:/Users/joel-/Documents/PlatformIO/Projects/Gateway/twomes-p1-gateway-firmware/sdkconfig:538 CONFIG_ESP32_RTC_CLK_SRC_EXT_OSC was replaced with CONFIG_RTC_CLK_SRC_EXT_OSC
+C:/Users/joel-/Documents/PlatformIO/Projects/Gateway/twomes-p1-gateway-firmware/sdkconfig:539 CONFIG_ESP32_RTC_CLK_SRC_INT_8MD256 was replaced with CONFIG_RTC_CLK_SRC_INT_8MD256
+C:/Users/joel-/Documents/PlatformIO/Projects/Gateway/twomes-p1-gateway-firmware/sdkconfig:540 CONFIG_ESP32_RTC_CLK_CAL_CYCLES was replaced with CONFIG_RTC_CLK_CAL_CYCLES
+C:/Users/joel-/Documents/PlatformIO/Projects/Gateway/twomes-p1-gateway-firmware/sdkconfig:541 CONFIG_ESP32_DEEP_SLEEP_WAKEUP_DELAY was replaced with CONFIG_ESP_SLEEP_DEEP_SLEEP_WAKEUP_DELAY
+C:/Users/joel-/Documents/PlatformIO/Projects/Gateway/twomes-p1-gateway-firmware/sdkconfig:542 CONFIG_ESP32_XTAL_FREQ_40 was replaced with CONFIG_XTAL_FREQ_40
+C:/Users/joel-/Documents/PlatformIO/Projects/Gateway/twomes-p1-gateway-firmware/sdkconfig:543 CONFIG_ESP32_XTAL_FREQ_26 was replaced with CONFIG_XTAL_FREQ_26
+C:/Users/joel-/Documents/PlatformIO/Projects/Gateway/twomes-p1-gateway-firmware/sdkconfig:544 CONFIG_ESP32_XTAL_FREQ_AUTO was replaced with CONFIG_XTAL_FREQ_AUTO
+C:/Users/joel-/Documents/PlatformIO/Projects/Gateway/twomes-p1-gateway-firmware/sdkconfig:545 CONFIG_ESP32_XTAL_FREQ was replaced with CONFIG_XTAL_FREQ
+C:/Users/joel-/Documents/PlatformIO/Projects/Gateway/twomes-p1-gateway-firmware/sdkconfig:547 CONFIG_ESP32_COMPATIBLE_PRE_V2_1_BOOTLOADERS was replaced with CONFIG_APP_COMPATIBLE_PRE_V2_1_BOOTLOADERS
+C:/Users/joel-/Documents/PlatformIO/Projects/Gateway/twomes-p1-gateway-firmware/sdkconfig:578 CONFIG_ESP_CONSOLE_UART_NONE was replaced with CONFIG_ESP_CONSOLE_NONE
+C:/Users/joel-/Documents/PlatformIO/Projects/Gateway/twomes-p1-gateway-firmware/sdkconfig:586 CONFIG_ESP_TASK_WDT was replaced with CONFIG_ESP_TASK_WDT_INIT
+C:/Users/joel-/Documents/PlatformIO/Projects/Gateway/twomes-p1-gateway-firmware/sdkconfig:651 CONFIG_OTA_ALLOW_HTTP was replaced with CONFIG_ESP_HTTPS_OTA_ALLOW_HTTP
+C:/Users/joel-/Documents/PlatformIO/Projects/Gateway/twomes-p1-gateway-firmware/sdkconfig:716 CONFIG_ESP32_PHY_CALIBRATION_AND_DATA_STORAGE was replaced with CONFIG_ESP_PHY_CALIBRATION_AND_DATA_STORAGE
+C:/Users/joel-/Documents/PlatformIO/Projects/Gateway/twomes-p1-gateway-firmware/sdkconfig:717 CONFIG_ESP32_PHY_INIT_DATA_IN_PARTITION was replaced with CONFIG_ESP_PHY_INIT_DATA_IN_PARTITION
+C:/Users/joel-/Documents/PlatformIO/Projects/Gateway/twomes-p1-gateway-firmware/sdkconfig:718 CONFIG_ESP32_PHY_MAX_WIFI_TX_POWER was replaced with CONFIG_ESP_PHY_MAX_WIFI_TX_POWER
+C:/Users/joel-/Documents/PlatformIO/Projects/Gateway/twomes-p1-gateway-firmware/sdkconfig:719 CONFIG_ESP32_PHY_MAX_TX_POWER was replaced with CONFIG_ESP_PHY_MAX_TX_POWER
+C:/Users/joel-/Documents/PlatformIO/Projects/Gateway/twomes-p1-gateway-firmware/sdkconfig:725 CONFIG_ESP32_ENABLE_COREDUMP_TO_FLASH was replaced with CONFIG_ESP_COREDUMP_ENABLE_TO_FLASH
+C:/Users/joel-/Documents/PlatformIO/Projects/Gateway/twomes-p1-gateway-firmware/sdkconfig:726 CONFIG_ESP32_ENABLE_COREDUMP_TO_UART was replaced with CONFIG_ESP_COREDUMP_ENABLE_TO_UART
+C:/Users/joel-/Documents/PlatformIO/Projects/Gateway/twomes-p1-gateway-firmware/sdkconfig:727 CONFIG_ESP32_ENABLE_COREDUMP_TO_NONE was replaced with CONFIG_ESP_COREDUMP_ENABLE_TO_NONE
+-- Looking for sys/types.h
+-- Looking for sys/types.h - found
+-- Looking for stdint.h
+-- Looking for stdint.h - found
+-- Looking for stddef.h
+-- Looking for stddef.h - found
+-- Check size of time_t
+-- Check size of time_t - done
+-- Found Python3: C:/Espressif/python_env/idf5.0_py3.11_env/Scripts/python.exe (found version "3.11.2") found components: Interpreter 
+-- Performing Test C_COMPILER_SUPPORTS_WFORMAT_SIGNEDNESS
+-- Performing Test C_COMPILER_SUPPORTS_WFORMAT_SIGNEDNESS - Success
+-- App "example_presence_detector" version: v2.0-test-1-g50279eb-dirty
+-- Adding linker script C:/Users/joel-/Documents/PlatformIO/Projects/Gateway/twomes-p1-gateway-firmware/build/esp-idf/esp_system/ld/memory.ld
+-- Adding linker script C:/Users/joel-/esp/esp-idf/components/esp_system/ld/esp32/sections.ld.in
+-- Adding linker script C:/Users/joel-/esp/esp-idf/components/esp_rom/esp32/ld/esp32.rom.ld
+-- Adding linker script C:/Users/joel-/esp/esp-idf/components/esp_rom/esp32/ld/esp32.rom.api.ld
+-- Adding linker script C:/Users/joel-/esp/esp-idf/components/esp_rom/esp32/ld/esp32.rom.libgcc.ld
+-- Adding linker script C:/Users/joel-/esp/esp-idf/components/esp_rom/esp32/ld/esp32.rom.newlib-data.ld
+-- Adding linker script C:/Users/joel-/esp/esp-idf/components/esp_rom/esp32/ld/esp32.rom.syscalls.ld
+-- Adding linker script C:/Users/joel-/esp/esp-idf/components/esp_rom/esp32/ld/esp32.rom.newlib-funcs.ld
+-- Adding linker script C:/Users/joel-/esp/esp-idf/components/soc/esp32/ld/esp32.peripherals.ld
+-- Components: app_trace app_update bootloader bootloader_support bt cmock console cxx driver efuse esp-tls esp_adc esp_app_format esp_common esp_eth esp_event esp_gdbstub esp_hid esp_http_client esp_http_server esp_https_ota esp_https_server esp_hw_support esp_lcd esp_local_ctrl esp_netif esp_partition esp_phy esp_pm esp_psram esp_ringbuf esp_rom esp_system esp_timer esp_wifi espcoredump esptool_py fatfs freertos hal heap http_parser idf_test ieee802154 json log lwip mbedtls mqtt newlib nvs_flash openthread partition_table perfmon protobuf-c protocomm pthread sdmmc soc spi_flash spiffs tcp_transport ulp unity usb vfs wear_levelling wifi_provisioning wpa_supplicant xtensa
+-- Component paths: C:/Users/joel-/esp/esp-idf/components/app_trace C:/Users/joel-/esp/esp-idf/components/app_update C:/Users/joel-/esp/esp-idf/components/bootloader C:/Users/joel-/esp/esp-idf/components/bootloader_support C:/Users/joel-/esp/esp-idf/components/bt C:/Users/joel-/esp/esp-idf/components/cmock C:/Users/joel-/esp/esp-idf/components/console C:/Users/joel-/esp/esp-idf/components/cxx C:/Users/joel-/esp/esp-idf/components/driver C:/Users/joel-/esp/esp-idf/components/efuse C:/Users/joel-/esp/esp-idf/components/esp-tls C:/Users/joel-/esp/esp-idf/components/esp_adc C:/Users/joel-/esp/esp-idf/components/esp_app_format C:/Users/joel-/esp/esp-idf/components/esp_common C:/Users/joel-/esp/esp-idf/components/esp_eth C:/Users/joel-/esp/esp-idf/components/esp_event C:/Users/joel-/esp/esp-idf/components/esp_gdbstub C:/Users/joel-/esp/esp-idf/components/esp_hid C:/Users/joel-/esp/esp-idf/components/esp_http_client C:/Users/joel-/esp/esp-idf/components/esp_http_server C:/Users/joel-/esp/esp-idf/components/esp_https_ota C:/Users/joel-/esp/esp-idf/components/esp_https_server C:/Users/joel-/esp/esp-idf/components/esp_hw_support C:/Users/joel-/esp/esp-idf/components/esp_lcd C:/Users/joel-/esp/esp-idf/components/esp_local_ctrl C:/Users/joel-/esp/esp-idf/components/esp_netif C:/Users/joel-/esp/esp-idf/components/esp_partition C:/Users/joel-/esp/esp-idf/components/esp_phy C:/Users/joel-/esp/esp-idf/components/esp_pm C:/Users/joel-/esp/esp-idf/components/esp_psram C:/Users/joel-/esp/esp-idf/components/esp_ringbuf C:/Users/joel-/esp/esp-idf/components/esp_rom C:/Users/joel-/esp/esp-idf/components/esp_system C:/Users/joel-/esp/esp-idf/components/esp_timer C:/Users/joel-/esp/esp-idf/components/esp_wifi C:/Users/joel-/esp/esp-idf/components/espcoredump C:/Users/joel-/esp/esp-idf/components/esptool_py C:/Users/joel-/esp/esp-idf/components/fatfs C:/Users/joel-/esp/esp-idf/components/freertos C:/Users/joel-/esp/esp-idf/components/hal C:/Users/joel-/esp/esp-idf/components/heap C:/Users/joel-/esp/esp-idf/components/http_parser C:/Users/joel-/esp/esp-idf/components/idf_test C:/Users/joel-/esp/esp-idf/components/ieee802154 C:/Users/joel-/esp/esp-idf/components/json C:/Users/joel-/esp/esp-idf/components/log C:/Users/joel-/esp/esp-idf/components/lwip C:/Users/joel-/esp/esp-idf/components/mbedtls C:/Users/joel-/esp/esp-idf/components/mqtt C:/Users/joel-/esp/esp-idf/components/newlib C:/Users/joel-/esp/esp-idf/components/nvs_flash C:/Users/joel-/esp/esp-idf/components/openthread C:/Users/joel-/esp/esp-idf/components/partition_table C:/Users/joel-/esp/esp-idf/components/perfmon C:/Users/joel-/esp/esp-idf/components/protobuf-c C:/Users/joel-/esp/esp-idf/components/protocomm C:/Users/joel-/esp/esp-idf/components/pthread C:/Users/joel-/esp/esp-idf/components/sdmmc C:/Users/joel-/esp/esp-idf/components/soc C:/Users/joel-/esp/esp-idf/components/spi_flash C:/Users/joel-/esp/esp-idf/components/spiffs C:/Users/joel-/esp/esp-idf/components/tcp_transport C:/Users/joel-/esp/esp-idf/components/ulp C:/Users/joel-/esp/esp-idf/components/unity C:/Users/joel-/esp/esp-idf/components/usb C:/Users/joel-/esp/esp-idf/components/vfs C:/Users/joel-/esp/esp-idf/components/wear_levelling C:/Users/joel-/esp/esp-idf/components/wifi_provisioning C:/Users/joel-/esp/esp-idf/components/wpa_supplicant C:/Users/joel-/esp/esp-idf/components/xtensa
+-- Configuring done
+-- Generating done
+-- Build files have been written to: C:/Users/joel-/Documents/PlatformIO/Projects/Gateway/twomes-p1-gateway-firmware/build

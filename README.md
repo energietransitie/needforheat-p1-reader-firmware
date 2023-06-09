@@ -1,78 +1,61 @@
-# Twomes software repository template
-A template repository for the Twomes project.
+# Twomes Presence Detector example
+
+This is a [template project](https://github.com/energietransitie/twomes-presence-detector/generate) that can be used to create firmware for measurement devices that use the [twomes-generic-esp-firmware](https://github.com/energietransitie/twomes-generic-esp-firmware) library.
 
 ## Table of contents
 * [General info](#general-info)
+* [Measurements](#measurements)
 * [Deploying](#deploying)
 * [Developing](#developing) 
+* [Supported devices](#supported-devices)
 * [Features](#features)
 * [Status](#status)
 * [License](#license)
 * [Credits](#credits)
 
 ## General info
-Add more general information about the repo. What is purpose of the code in the repo? Motivation?
+The Twomes Presence Detector primarily serves as an example and template repository how to create firmware that uses the [twomes-generic-esp-firmware](https://github.com/energietransitie/twomes-generic-esp-firmware) library. Nevertheless, it can be used in  measurement campaigns that require occupancy detection using Bluetooth name requests.
+
+## Measurements
+
+A Twomes Presence Detector measurement device, in addition to [generic data sent by any Twomes measurement device](https://github.com/energietransitie/twomes-generic-esp-firmware#readme), sends data about the following property via the [Twomes API](https://github.com/energietransitie/twomes-backoffice-api) to a Twomes server:
+
+| Sensor | Property           | Unit | [Printf format](https://en.wikipedia.org/wiki/Printf_format_string) | Default measurement interval \[h:mm:ss\] | Description                            |
+|--------|--------------------|------|--------|-------------------|----------------------------------------|
+| Bluetooth  | `countPresence`         | [-]   | %u   | 0:10:00           | number of smartphones responding to Bluetooth name request                        |
 
 ## Deploying
-This section describes how you can deploy binary releases of the firmware, i.e. without changing the source code, without a development environment and without needing to compile the source code.
-
-### Prerequisites
-Describe which (hardware and) software you need before you can deploy the software. If the prerequisites are different the same for deploying users and developing users, you may want to merge the prerequisites sections.
-
-### Other steps 
-Describe how the reader can download and install the lastest installable version(s). If appropriate, link to the latest binary release or package you published in the repo. If needed, describe this for different platforms.
-Use steps if the procedure is non-trivial:
-1. first step;
-2. second step;
-3. final step.
-
-Format any scripts or commands in a way that makes them  easy to copy, like the following example. 
-
-Forgotten your Wi-Fi password? No problem with the follwing command, replacing `SSID` with the Wi-Fi name of your own Wi-Fi network: 
-```shell
-netsh wlan show profile SSID key=clear
-```
+To deploy this software, see the [deploying section in the twomes-generic-esp-firmware library documentation](https://www.energietransitiewindesheim.nl/twomes-generic-esp-firmware/deploying/prerequisites/). The firmware needed can be found as a [release from this repository](https://github.com/energietransitie/twomes-presence-detector/releases).
 
 ## Developing
-This section describes how you can change the source code using a development environment and compile the source code into a binary release of the firmware that can be deployed, either via the development environment, or via the method described in the section [Deploying](#deploying).
+To develop software for, or based on this software, see the [developing section in the twomes-generic-esp-firmware library documentation](https://www.energietransitiewindesheim.nl/twomes-generic-esp-firmware/starting/prerequisites/)
 
-### Prerequisites
-Describe which (hardware and) software you need before you can change or extend the source code. If the prerequisites are different the same for deploying users and developing users, you may want to merge the prerequisites sections.
+## Supported devices
+This example was tested on:
+- [M5Stack CoreInk](https://github.com/m5stack/M5-CoreInk)
+
+This example still needs to be tested n:
+- [LilyGO TTGO T7 Mini32 V1.3 ESP32](https://github.com/LilyGO/ESP32-MINI-32-V1.3)
 
 ## Features
-List of features ready and TODOs for future development. Ready:
-* awesome feature 1;
-* awesome feature 2;
-* awesome feature 3.
+The example features all generic firmware tasks.
 
-To-do:
-* wow improvement to be done 1;
-* wow improvement to be done 2.
+Ready:
+* Generic firmware tasks using the [twomes-generic-esp-firmware](https://github.com/energietransitie/twomes-generic-esp-firmware) library, including presence detection based on Bluetooth name requests.
 
 ## Status
-Project is: _in progress_, _finished_, _no longer continued_ and why?
+Project is: _in progress_
 
 ## License
-This software is available under the [Apache 2.0 license](./LICENSE), Copyright 2021 [Research group Energy Transition, Windesheim University of Applied Sciences](https://windesheim.nl/energietransitie) 
+This software is available under the [Apache 2.0 license](./LICENSE), Copyright 2022 [Research group Energy Transition, Windesheim University of Applied Sciences](https://windesheim.nl/energietransitie) 
 
 ## Credits
-This software is a collaborative effort of:
-* <contributor name 1> · [@Github_handle_1](https://github.com/<github_handle_1>) · Twitter [@Twitter_handle_1](https://twitter.com/<twitter_handle_1>)
-* <contributor name 2> · [@Github_handle_2](https://github.com/<github_handle_2>) · Twitter [@Twitter_handle_2](https://twitter.com/<twitter_handle_2>)
-* <contributor name 3> · [@Github_handle_3](https://github.com/<github_handle_3>) · Twitter [@Twitter_handle_3](https://twitter.com/<twitter_handle_3>)
-* etc. 
-* 
-Thanks also go to:
-* <thanks name 1> · [@Github_handle_1](https://github.com/<github_handle_1>) · Twitter [@Twitter_handle_1](https://twitter.com/<twitter_handle_1>)
-* <thanks name 2> · [@Github_handle_2](https://github.com/<github_handle_2>) · Twitter [@Twitter_handle_2](https://twitter.com/<twitter_handle_2>)
-* <thanks name 3> · [@Github_handle_3](https://github.com/<github_handle_3>) · Twitter [@Twitter_handle_3](https://twitter.com/<twitter_handle_3>)
-* etc. 
+This software was created by:
+* Nick van Ravenzwaaij · [@n-vr](https://github.com/n-vr)
 
-Product owner:
+Product owners:
 * Henri ter Hofte · [@henriterhofte](https://github.com/henriterhofte) · Twitter [@HeNRGi](https://twitter.com/HeNRGi)
 
 We use and gratefully acknowlegde the efforts of the makers of the following source code and libraries:
-* [library name 1 and version](library 1 URL), by <copyright holder name 1>, licensed under [license 1 name](license1 URL)
-* [library name 2 and version](library 2 URL), by <copyright holder name 2>, licensed under [license 2 name](license2 URL)
-* [library name 3 and version](library 3 URL), by <copyright holder name 3>, licensed under [license 3 name](license3 URL)
-* etc. 
+* [ESP-IDF](https://github.com/espressif/esp-idf), by Espressif Systems, licensed under [Apache License 2.0](https://github.com/espressif/esp-idf/blob/9d34a1cd42f6f63b3c699c3fe8ec7216dd56f36a/LICENSE)
+* [twomes-generic-esp-firmware](https://github.com/energietransitie/twomes-generic-esp-firmware), by [Research group Energy Transition, Windesheim University of Applied Sciences](https://windesheim.nl/energietransitie), licensed under [Apache License 2.0](https://github.com/energietransitie/twomes-generic-esp-firmware/blob/main/LICENSE.md)

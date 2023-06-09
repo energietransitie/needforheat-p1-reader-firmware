@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <script>
+        // Set all languages that you created a manual for.
+        let availableLanguages = ["nl-NL", "en-UK"];
+        // Set the default (fallback) language.
+        let defaultLanguage = "en-UK";
+
+        let language = navigator.language;
+        if (!availableLanguages.includes(language)) {
+            language = defaultLanguage
+        }
+
+        window.location.replace(language);
+    </script>
+</head>
+<body>
+</body>
+</html>
