@@ -1,6 +1,6 @@
 #include <timestamp.hpp>
 
-time_t parseDsmrTimestamp(const char* dsmrTimestamp)
+time_t parseDsmrTimestamp(const char* dsmrTimestamp, time_t deviceTime)
 {
     const char * TIMEZONE = "Europe/Amsterdam";
     time_t t;
@@ -41,7 +41,7 @@ time_t parseDsmrTimestamp(const char* dsmrTimestamp)
 
         if (timeStruct.tm_mon <= 12 && timeStruct.tm_mday <=31 && timeStruct.tm_hour < 24 && timeStruct.tm_min < 60 && timeStruct.tm_sec < 60)//if date has no overflow
         {
-            t = mktime(setHours(&timeStruct));  // t is now the desired time_t
+            t = mktime(setHours(&timeStruct, deviceTime));  // t is now the desired time_t
         }
         else
         {
@@ -70,13 +70,11 @@ time_t parseDsmrTimestamp(const char* dsmrTimestamp)
 
 
 
-tm *setHours(tm *timeStruct)
+tm *setHours(tm *timeStruct, time_t deviceTime)
 {
-    //create utc timestamp into a tm struct
-    time_t UTC = time(NULL);
-    time(&UTC);
+    //parse the utc timestamp into a tm struct
     struct tm * utcTm;
-    utcTm = gmtime(&UTC);
+    utcTm = gmtime(&deviceTime);
 
     //get correct hours
     if(timeStruct->tm_isdst == 1)//summertime DSMR 4/5
@@ -106,4 +104,11 @@ tm *setHours(tm *timeStruct)
     }
     
     return timeStruct;
+}
+
+time_t deviceTime()
+{
+    time_t UTC = time(NULL);
+    time(&UTC);
+    return UTC;
 }

@@ -29,7 +29,7 @@ void uartStartDetectBaudrate()
 
     ESP_LOGI("Baudrate", "calculating baudrate");
 
-    while (detected < bufferSize && (esp_timer_get_time() < (10000000 + timestamps[0]))) //10 seconds after boot
+    while (detected < bufferSize && (esp_timer_get_time() < (5000000 + timestamps[0]))) //10 seconds after boot
     {
         long long int timeDeliverd;
         if (xQueueReceive(interputQueue, &timeDeliverd, portTICK_PERIOD_MS))
