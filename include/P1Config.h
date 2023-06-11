@@ -124,7 +124,8 @@ typedef struct channelListstruct {
 
  //Init
 
-void initP1UART();
+void initP1UART_DSMR45();
+void initP1UART_DSMR23();
 void initGPIO_P1();
 
 

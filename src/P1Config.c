@@ -6,14 +6,36 @@
 /**
  * @brief Initialise UART "P1PORT_UART_NUM" for P1 receive
  */
-void initP1UART() {
+void initP1UART_DSMR45() {
     //UART Configuration for P1-Port reading:
     
-    //115200 baud, 8n1, no parity, no HW flow control
+    //115200 baud, 8n1, no HW flow control
     uart_config_t uart_config = {
         .baud_rate = 115200,
         .data_bits = UART_DATA_8_BITS,
         .parity = UART_PARITY_DISABLE,
+        .stop_bits = UART_STOP_BITS_1,
+        .flow_ctrl = UART_HW_FLOWCTRL_DISABLE,
+        .rx_flow_ctrl_thresh = 122,
+    };
+
+    ESP_ERROR_CHECK(uart_param_config(P1PORT_UART_NUM, &uart_config));
+    ESP_ERROR_CHECK(uart_set_pin(P1PORT_UART_NUM, 17, 16, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE));// Set UART pins(TX: IO17, RX: IO16, RTS: *, CTS: *)
+    ESP_ERROR_CHECK(uart_set_line_inverse(P1PORT_UART_NUM, UART_SIGNAL_RXD_INV | UART_SIGNAL_IRDA_RX_INV)); //Invert RX data
+    ESP_ERROR_CHECK(uart_driver_install(P1PORT_UART_NUM, P1_BUFFER_SIZE * 2, 0, 0, NULL, 0));
+}
+
+/**
+ * @brief Initialise UART "P1PORT_UART_NUM" for P1 receive
+ */
+void initP1UART_DSMR23() {
+    //UART Configuration for P1-Port reading:
+    
+    //9600 baud, 7E1, no HW flow control
+    uart_config_t uart_config = {
+        .baud_rate = 9600,
+        .data_bits = UART_DATA_7_BITS,
+        .parity = UART_PARITY_EVEN,
         .stop_bits = UART_STOP_BITS_1,
         .flow_ctrl = UART_HW_FLOWCTRL_DISABLE,
         .rx_flow_ctrl_thresh = 122,
@@ -240,7 +262,7 @@ P1Data p1Read()
     static int uartInit = 0;
     if (!uartInit)
     {
-        initP1UART();
+        initP1UART_DSMR45();
 	    initGPIO_P1();
         //set baudrate
         uartStartDetectBaudrate();
@@ -267,6 +289,7 @@ P1Data p1Read()
 
     //If data is received:
     if (uartDataSize > 0) {
+        ESP_LOGD("P1", "data: %.*s", uartDataSize, data);
         //Trim the received message to contain only the necessary data and store the CRC as an unsigned int:
         char *p1MessageStart = strchr((const char *)data, '/'); //Find the position of the start-of-message character ('/')
         char *p1MessageEnd = NULL;
