@@ -28,9 +28,10 @@ extern "C"
 
 void uartStartDetectBaudrate();
 void abrInit();
-void setBaudrate(uint32_t baudrate_us);
-uint32_t calculateBitInterval(uint32_t baudrate);
-void findNearestBaudRate(uint32_t * candidateBaudRates, uint32_t measuredBaudRate_us);
+uint32_t decideBaudrate__b_s_1(uint32_t smallestBitFlankInterval__us);
+uint32_t calculateBitInterval__us(uint32_t baudrate__b_s_1);
+uint32_t findNearestBaudRate__b_s_1(uint32_t * candidateBaudRates__b_s_1, uint32_t measuredBaudRate_us);
+
 
 #ifdef __cplusplus
 }
