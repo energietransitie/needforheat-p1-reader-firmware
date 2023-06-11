@@ -10,8 +10,8 @@ xQueueHandle interputQueue;
 
 static void IRAM_ATTR gpio_interrupt_handler(void *args)
 {
-    long long int e = esp_timer_get_time();
-    xQueueSendFromISR(interputQueue, &e, NULL);
+    long long int timeDelivered = esp_timer_get_time();
+    xQueueSendFromISR(interputQueue, &timeDelivered, NULL);
 }
 
 void uartStartDetectBaudrate()
