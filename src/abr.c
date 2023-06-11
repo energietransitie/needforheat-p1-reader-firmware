@@ -69,13 +69,26 @@ void uartStartDetectBaudrate()
         #ifdef USE_NEAREST_BAUDRATE
             uint32_t candidateBaudRates__b_s_1[3] = {9600, 115200, 0}; // must be 0-terminated!
             baudrate__b_s_1 = findNearestBaudRate__b_s_1(candidateBaudRates__b_s_1, smallestBitFlankInterval__us);
-        ESP_LOGI("Baudrate found using find nearest:", "%d b/s", baudrate__b_s_1);
+            ESP_LOGI("Baudrate found using find nearest:", "%d b/s", baudrate__b_s_1);
         #else
             baudrate__b_s_1 = decideBaudrate__b_s_1(smallestBitFlankInterval__us);
         ESP_LOGI("Baudrate found using decide algorithm:", "%d b/s", baudrate__b_s_1);
         #endif
-        uart_set_baudrate(P1PORT_UART_NUM, baudrate__b_s_1);
-        ESP_LOGI("Baudrate set:", "%d b/s", (baudrate__b_s_1));
+
+        ESP_LOGI("Baudrate to set:", "%d b/s", (baudrate__b_s_1));
+        switch (baudrate__b_s_1) {
+            case 9600:
+                initP1UART_DSMR23();
+                break;
+            case 115200:
+                initP1UART_DSMR45();
+                break;
+            default:
+                ESP_LOGE("UART_SETUP", "Invalid baud rate specified");
+                return;
+        }
+
+        // uart_set_baudrate(P1PORT_UART_NUM, baudrate__b_s_1);
 
 
        
