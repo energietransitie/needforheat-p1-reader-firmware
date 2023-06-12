@@ -2,7 +2,6 @@
 
 time_t parseDsmrTimestamp(const char* dsmrTimestamp, time_t deviceTime)
 {
-    const char * TIMEZONE = "Europe/Amsterdam";
     time_t t;
     char isoBuffer[sizeof "0000-00-00T00:00:00+0000"];
     ESP_LOGI("Time","Smart meter timestamp: %s", dsmrTimestamp);
