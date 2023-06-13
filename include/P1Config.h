@@ -19,6 +19,7 @@ extern "C"
 #include <esp_system.h>
 #include <esp_log.h>
 #include <nvs_flash.h>
+#include <nvs.h>
 #include <esp_wifi.h>
 #include <driver/uart.h>
 #include <driver/gpio.h>
@@ -124,8 +125,9 @@ typedef struct channelListstruct {
 
  //Init
 
-void initP1UART_DSMR45();
-void initP1UART_DSMR23();
+void initP1UART();
+void setP1UARTConfigDSMR45();
+void setP1UARTConfigDSMR23();
 void initGPIO_P1();
 
 

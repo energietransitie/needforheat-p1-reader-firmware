@@ -6,31 +6,7 @@
 /**
  * @brief Initialise UART "P1PORT_UART_NUM" for P1 receive
  */
-void initP1UART_DSMR45() {
-    //UART Configuration for P1-Port reading:
-    
-    //115200 baud, 8n1, no HW flow control
-    uart_config_t uart_config = {
-        .baud_rate = 9600,
-        .data_bits = UART_DATA_8_BITS,
-        .parity = UART_PARITY_DISABLE,
-        .stop_bits = UART_STOP_BITS_1,
-        .flow_ctrl = UART_HW_FLOWCTRL_DISABLE,
-        .rx_flow_ctrl_thresh = 122,
-    };
-
-    ESP_ERROR_CHECK(uart_param_config(P1PORT_UART_NUM, &uart_config));
-    ESP_ERROR_CHECK(uart_set_pin(P1PORT_UART_NUM, 17, 16, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE));// Set UART pins(TX: IO17, RX: IO16, RTS: *, CTS: *)
-    ESP_ERROR_CHECK(uart_set_line_inverse(P1PORT_UART_NUM, UART_SIGNAL_RXD_INV | UART_SIGNAL_IRDA_RX_INV)); //Invert RX data
-    ESP_ERROR_CHECK(uart_driver_install(P1PORT_UART_NUM, P1_BUFFER_SIZE * 2, 0, 0, NULL, 0));
-}
-
-/**
- * @brief Initialise UART "P1PORT_UART_NUM" for P1 receive
- */
-void initP1UART_DSMR23() {
-    //UART Configuration for P1-Port reading:
-    
+void initP1UART() {
     //9600 baud, 7E1, no HW flow control
     uart_config_t uart_config = {
         .baud_rate = 9600,
@@ -45,6 +21,27 @@ void initP1UART_DSMR23() {
     ESP_ERROR_CHECK(uart_set_pin(P1PORT_UART_NUM, 17, 16, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE));// Set UART pins(TX: IO17, RX: IO16, RTS: *, CTS: *)
     ESP_ERROR_CHECK(uart_set_line_inverse(P1PORT_UART_NUM, UART_SIGNAL_RXD_INV | UART_SIGNAL_IRDA_RX_INV)); //Invert RX data
     ESP_ERROR_CHECK(uart_driver_install(P1PORT_UART_NUM, P1_BUFFER_SIZE * 2, 0, 0, NULL, 0));
+}
+/**
+ * @brief Update UART "P1PORT_UART_NUM" for P1 receive
+ */
+void setP1UARTConfigDSMR45() {
+    //UART Configuration for P1-Port reading:
+    //11520 baud, 8N1, no parity
+    uart_set_baudrate(P1PORT_UART_NUM, 115200);
+    uart_set_word_length(P1PORT_UART_NUM, UART_DATA_8_BITS);
+    uart_set_parity(P1PORT_UART_NUM, UART_PARITY_DISABLE);  
+}
+
+/**
+ * @brief Update UART "P1PORT_UART_NUM" for P1 receive
+ */
+void setP1UARTConfigDSMR23() {
+    //UART Configuration for P1-Port reading:
+    //9600 baud, 7E1, even parity
+    uart_set_baudrate(P1PORT_UART_NUM, 9600);
+    uart_set_word_length(P1PORT_UART_NUM, UART_DATA_7_BITS);
+    uart_set_parity(P1PORT_UART_NUM, UART_PARITY_EVEN);
 }
 
 /**
@@ -258,11 +255,21 @@ void printP1Error(int errorType) {
 
 P1Data p1Read()
 {
+    // nvs_handle_t nvsStorage;
+    // esp_err_t err;
+    // err = nvs_open("storage", NVS_READWRITE, &nvsStorage);
+    // if (err != ESP_OK) {
+    //     ESP_LOGI("NVS","Error (%s) opening NVS handle!\n", esp_err_to_name(err));
+    // } else {
+    //     ESP_LOGI("NVS","Opened");
+    
+    
+    // }
     //little init check to prevent unnecessery loops.
     static int uartInit = 0;
     if (!uartInit)
     {
-        initP1UART_DSMR45();
+        initP1UART();
 	    initGPIO_P1();
         //set baudrate
         uartStartDetectBaudrate();
