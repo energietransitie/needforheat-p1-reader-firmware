@@ -25,10 +25,16 @@ void uartStartDetectBaudrate()
     uint32_t bitFlankInterval__us = 0;
     uint32_t smallestBitFlankInterval__us = 0;
     uint32_t baudrate__b_s_1 = 0;
+    uart_parity_t parityPointer;
+    uart_word_length_t dataLenghtPointer;
 
     ESP_LOGI("Timer", "Started timer, time since boot: %lld us", bitFlankTimestamps__us[0] = esp_timer_get_time());
     gpio_set_direction(INPUT_PIN, GPIO_MODE_INPUT);
-    
+
+    uart_get_parity(P1PORT_UART_NUM, &parityPointer);
+    uart_get_word_length(P1PORT_UART_NUM, &dataLenghtPointer);
+    ESP_LOGI("Baudrate", "Lenght %d parity %d", dataLenghtPointer, parityPointer);
+
     static int detected = 0;
 
     ESP_LOGI("Baudrate", "calculating baudrate");
@@ -78,10 +84,10 @@ void uartStartDetectBaudrate()
         ESP_LOGI("Baudrate to set:", "%d b/s", (baudrate__b_s_1));
         switch (baudrate__b_s_1) {
             case 9600:
-                initP1UART_DSMR23();
+                setP1UARTConfigDSMR23();
                 break;
             case 115200:
-                initP1UART_DSMR45();
+                setP1UARTConfigDSMR45();
                 break;
             default:
                 ESP_LOGE("UART_SETUP", "Invalid baud rate specified");
@@ -99,7 +105,10 @@ void uartStartDetectBaudrate()
     }
     uint32_t current_b_s_1 = 0;
     uart_get_baudrate(P1PORT_UART_NUM, &current_b_s_1);
-    ESP_LOGI("Baudrate get:", "%d b/s", (current_b_s_1));
+    uart_get_parity(P1PORT_UART_NUM, &parityPointer);
+    uart_get_word_length(P1PORT_UART_NUM, &parityPointer);
+    ESP_LOGI("Baudrate", "Lenght %d parity %d", dataLenghtPointer, parityPointer);
+    ESP_LOGI("Baudrate get", "%d b/s", (current_b_s_1));
     //Write DRQ pin low again (otherwise P1 port keeps transmitting every second);
     gpio_set_level(PIN_DRQ, 1);
 }
