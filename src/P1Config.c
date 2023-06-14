@@ -290,7 +290,9 @@ P1Data p1Read()
     //DRQ pin has inverter to pull up to 5V, which makes it active low:      
     gpio_set_level(PIN_DRQ, 0);
     //Wait for 18 seconds to ensure a message is read even on a DSMR4.x device:
-    vTaskDelay(18000 / portTICK_PERIOD_MS);
+    vTaskDelay(18*1000 / portTICK_PERIOD_MS);
+    // //Wait for 2 seconds to ensure a message is read  on a DSMR5.x device:
+    // vTaskDelay(2*1000 / portTICK_PERIOD_MS);
     //Write DRQ pin low again (otherwise P1 port keeps transmitting every second);
     gpio_set_level(PIN_DRQ, 1);
 
