@@ -261,24 +261,16 @@ void printP1Error(int errorType) {
 
 P1Data p1Read()
 {
-    // nvs_handle_t nvsStorage;
-    // esp_err_t err;
-    // err = nvs_open("storage", NVS_READWRITE, &nvsStorage);
-    // if (err != ESP_OK) {
-    //     ESP_LOGI("NVS","Error (%s) opening NVS handle!\n", esp_err_to_name(err));
-    // } else {
-    //     ESP_LOGI("NVS","Opened");
-    
-    
-    // }
     //little init check to prevent unnecessery loops.
+    uint8_t isDSMR5orNewer = 0;
+    static uint8_t reDetect = 0;
     static int uartInit = 0;
     if (!uartInit)
     {
         initP1UART();
 	    initGPIO_P1();
         //set baudrate
-        uartStartDetectBaudrate();
+        updateOrDetectBaudrate(reDetect);
         uartInit = 1;
     }
 
@@ -289,10 +281,21 @@ P1Data p1Read()
     ESP_LOGI("P1", "Attempting to read P1 Port");
     //DRQ pin has inverter to pull up to 5V, which makes it active low:      
     gpio_set_level(PIN_DRQ, 0);
-    //Wait for 18 seconds to ensure a message is read even on a DSMR4.x device:
-    vTaskDelay(18*1000 / portTICK_PERIOD_MS);
-    // //Wait for 2 seconds to ensure a message is read  on a DSMR5.x device:
-    // vTaskDelay(2*1000 / portTICK_PERIOD_MS);
+
+    if(getIfDSMR5orNewer())
+    {
+        //Wait for 2 seconds to ensure a message is read  on a DSMR5.x device:
+        ESP_LOGI("P1", "2 seconds");
+        vTaskDelay(2*1000 / portTICK_PERIOD_MS);
+        isDSMR5orNewer = 1;
+    }
+    else
+    {
+        //Wait for 18 seconds to ensure a message is read even on a DSMR4.x device:
+         ESP_LOGI("P1", "18 seconds");
+        vTaskDelay(18*1000 / portTICK_PERIOD_MS);
+    }
+   
     //Write DRQ pin low again (otherwise P1 port keeps transmitting every second);
     gpio_set_level(PIN_DRQ, 1);
 
@@ -358,18 +361,20 @@ P1Data p1Read()
                 //Log received and calculated CRC for debugging and flash the Error LED
                 ESP_LOGE("ERROR - P1", "CRC DOES NOT MATCH");
                 ESP_LOGD("ERROR - P1", "Received CRC %4X but calculated CRC %4X", receivedCRC, calculatedCRC);
-
+                reDetect = 1;
             }
 
             //Free the P1 message from memory
             free(p1Message);
+            reDetect = 0;
         }
         else {
             ESP_LOGE("P1", "P1 message was invalid");
+            reDetect = 1;
         }
     } else if(uartDataSize == -1) {
         ESP_LOGI("P1", "No UART data found");
-
+            reDetect = 1;
     }
     else{
         ESP_LOGI("P1", "No P1 message was found");
@@ -377,6 +382,82 @@ P1Data p1Read()
     //Release the data from the memory buffer:
     free(data);
 
+    //if current version is 5 and its not set OR current version is not 5 while nvs returns 5
+    if((p1Measurements.dsmrVersion >= 50 && p1Measurements.dsmrVersion < 60 && !isDSMR5orNewer) || (p1Measurements.dsmrVersion < 50 && isDSMR5orNewer))
+    {
+        ESP_LOGI("P1", "Version: %d", p1Measurements.dsmrVersion);
+        setIfDSMR5orNewer(p1Measurements.dsmrVersion);
+    }
+
     return p1Measurements;
 
+}
+
+void setIfDSMR5orNewer(uint8_t DSMRVersion)
+{
+    nvs_handle_t nvsStorage;
+    esp_err_t err;
+    uint8_t isDSMR5orNewer; // boolean
+    if (DSMRVersion >= 50)
+    {
+        isDSMR5orNewer = 1;
+    }
+    else
+    {
+        isDSMR5orNewer = 0;
+    }
+    
+    
+    err = nvs_open("storage", NVS_READWRITE, &nvsStorage);
+    if (err != ESP_OK) {
+        ESP_LOGD("NVS","Error (%s) opening NVS handle!\n", esp_err_to_name(err));
+    } else {
+        ESP_LOGD("NVS","Opened");
+
+        err = nvs_set_u8(nvsStorage, "isDSMR5orNewer", isDSMR5orNewer);
+
+        // Commit written value.
+        // After setting any values, nvs_commit() must be called to ensure changes are written
+        // to flash storage. Implementations may write to storage at other times,
+        // but this is not guaranteed.
+        ESP_LOGD("NVS", "Committing updates in NVS ... ");
+        err = nvs_commit(nvsStorage);
+        // Close
+        nvs_close(nvsStorage);
+    }
+
+}
+
+
+uint8_t getIfDSMR5orNewer()
+{
+    nvs_handle_t nvsStorage;
+    esp_err_t err;
+    uint8_t isDSMR5orNewer = 0; // boolean
+    err = nvs_open("storage", NVS_READWRITE, &nvsStorage);
+    if (err != ESP_OK) {
+        ESP_LOGD("NVS","Error (%s) opening NVS handle!\n", esp_err_to_name(err));
+    } else {
+        ESP_LOGD("NVS","Opened");
+
+        ESP_LOGD("NVS","Reading if DSMR version is 5 from NVS ... ");
+
+        err = nvs_get_u8(nvsStorage, "isDSMR5orNewer", &isDSMR5orNewer);
+        switch (err) {
+            case ESP_OK:
+                ESP_LOGD("NVS","Done\n");
+                ESP_LOGD("NVS","DSMR5 = %" PRIu8 "\n", isDSMR5orNewer);
+                break;
+            case ESP_ERR_NVS_NOT_FOUND:
+                ESP_LOGD("NVS","The value is not initialized yet!\n");
+                break;
+            default :
+               ESP_LOGD("NVS","Error (%s) reading!\n", esp_err_to_name(err));
+        }
+    
+        // Close
+        nvs_close(nvsStorage);
+    }
+
+    return isDSMR5orNewer;
 }

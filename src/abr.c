@@ -14,7 +14,7 @@ static void IRAM_ATTR gpio_interrupt_handler(void *args)
     xQueueSendFromISR(interputQueue, &timeDelivered, NULL);
 }
 
-void uartStartDetectBaudrate()
+uint32_t uartStartDetectBaudrate()
 {    
     abrInit();
     //DRQ pin has inverter to pull up to 5V, which makes it active low:      
@@ -72,7 +72,7 @@ void uartStartDetectBaudrate()
             ESP_LOGI("Baudrate found using find nearest:", "%d b/s", baudrate__b_s_1);
         #else
             baudrate__b_s_1 = decideBaudrate__b_s_1(smallestBitFlankInterval__us);
-        ESP_LOGI("Baudrate found using decide algorithm:", "%d b/s", baudrate__b_s_1);
+            ESP_LOGI("Baudrate found using decide algorithm:", "%d b/s", baudrate__b_s_1);
         #endif
 
         ESP_LOGI("Baudrate to set:", "%d b/s", (baudrate__b_s_1));
@@ -85,7 +85,6 @@ void uartStartDetectBaudrate()
                 break;
             default:
                 ESP_LOGE("UART_SETUP", "Invalid baud rate specified");
-                return;
         }
        
     }
@@ -95,6 +94,8 @@ void uartStartDetectBaudrate()
     }
     //Write DRQ pin low again (otherwise P1 port keeps transmitting every second);
     gpio_set_level(PIN_DRQ, 1);
+
+    return baudrate__b_s_1;
 }
 
 void abrInit()
@@ -162,4 +163,63 @@ uint32_t findNearestBaudRate__b_s_1(uint32_t * candidateBaudRates__b_s_1, uint32
     }
     ESP_LOGI("Nearest baudrate:", "%d b/s", nearest__b_s_1);
     return nearest__b_s_1;
+}
+
+void updateOrDetectBaudrate(uint8_t detect)
+{
+    nvs_handle_t nvsStorage;
+    esp_err_t err;
+    uint32_t P1baudrate = 0; // boolean
+    err = nvs_open("storage", NVS_READWRITE, &nvsStorage);
+    if (err != ESP_OK) {
+        ESP_LOGD("NVS","Error (%s) opening NVS handle!\n", esp_err_to_name(err));
+    } else {
+        ESP_LOGD("NVS","Opened");
+
+        ESP_LOGD("NVS","Reading P1baudrate from NVS ... ");
+
+        err = nvs_get_u32(nvsStorage, "P1baudrate", &P1baudrate);
+        switch (err) {
+            case ESP_OK:
+                ESP_LOGD("NVS","Done\n");
+                ESP_LOGD("NVS","P1baudrate = %" PRIu32 "\n", P1baudrate);
+                switch (P1baudrate) {
+                case 9600:
+                    setP1UARTConfigDSMR2or3();
+                    break;
+                case 115200:
+                    setP1UARTConfigDSMR4or5();
+                    break;
+                }
+                break;
+            case ESP_ERR_NVS_NOT_FOUND:
+                ESP_LOGD("NVS","The value is not initialized yet!\n");
+                break;
+            default :
+               ESP_LOGD("NVS","Error (%s) reading!\n", esp_err_to_name(err));
+        }
+
+        if(detect || err == ESP_ERR_NVS_NOT_FOUND)
+        {
+            P1baudrate = uartStartDetectBaudrate();
+            
+            if(P1baudrate){
+
+                err = nvs_set_u32(nvsStorage, "P1baudrate", P1baudrate);
+
+                // Commit written value.
+                // After setting any values, nvs_commit() must be called to ensure changes are written
+                // to flash storage. Implementations may write to storage at other times,
+                // but this is not guaranteed.
+                ESP_LOGD("NVS", "Committing updates in NVS ... ");
+                err = nvs_commit(nvsStorage);
+            }
+        }
+    
+        // Close
+        nvs_close(nvsStorage);
+    }
+
+   
+
 }
