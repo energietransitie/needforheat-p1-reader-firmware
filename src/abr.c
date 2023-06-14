@@ -78,19 +78,15 @@ void uartStartDetectBaudrate()
         ESP_LOGI("Baudrate to set:", "%d b/s", (baudrate__b_s_1));
         switch (baudrate__b_s_1) {
             case 9600:
-                setP1UARTConfigDSMR23();
+                setP1UARTConfigDSMR2or3();
                 break;
             case 115200:
-                setP1UARTConfigDSMR45();
+                setP1UARTConfigDSMR4or5();
                 break;
             default:
                 ESP_LOGE("UART_SETUP", "Invalid baud rate specified");
                 return;
         }
-
-        // uart_set_baudrate(P1PORT_UART_NUM, baudrate__b_s_1);
-
-
        
     }
     else
