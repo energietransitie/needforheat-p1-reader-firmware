@@ -7,11 +7,11 @@
  * @brief Initialise UART "P1PORT_UART_NUM" for P1 receive
  */
 void initP1UART() {
-    //9600 baud, 7E1, no HW flow control
+    //initially, set equivalent to setP1UARTConfigDSMR45()
     uart_config_t uart_config = {
-        .baud_rate = 9600,
-        .data_bits = UART_DATA_7_BITS,
-        .parity = UART_PARITY_EVEN,
+        .baud_rate = 115200,
+        .data_bits = UART_DATA_8_BITS,
+        .parity = UART_PARITY_DISABLE,
         .stop_bits = UART_STOP_BITS_1,
         .flow_ctrl = UART_HW_FLOWCTRL_DISABLE,
         .rx_flow_ctrl_thresh = 122,
@@ -21,6 +21,7 @@ void initP1UART() {
     ESP_ERROR_CHECK(uart_set_pin(P1PORT_UART_NUM, 17, 16, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE));// Set UART pins(TX: IO17, RX: IO16, RTS: *, CTS: *)
     ESP_ERROR_CHECK(uart_set_line_inverse(P1PORT_UART_NUM, UART_SIGNAL_RXD_INV | UART_SIGNAL_IRDA_RX_INV)); //Invert RX data
     ESP_ERROR_CHECK(uart_driver_install(P1PORT_UART_NUM, P1_BUFFER_SIZE * 2, 0, 0, NULL, 0));
+    ESP_LOGD("Inital P1 serial config set to", "115200/8N1");
 }
 /**
  * @brief Update UART "P1PORT_UART_NUM" for P1 receive
@@ -31,6 +32,9 @@ void setP1UARTConfigDSMR45() {
     uart_set_baudrate(P1PORT_UART_NUM, 115200);
     uart_set_word_length(P1PORT_UART_NUM, UART_DATA_8_BITS);
     uart_set_parity(P1PORT_UART_NUM, UART_PARITY_DISABLE);  
+    ESP_LOGD("P1 serial config set to", "115200/8N1");
+
+
 }
 
 /**
@@ -42,6 +46,7 @@ void setP1UARTConfigDSMR23() {
     uart_set_baudrate(P1PORT_UART_NUM, 9600);
     uart_set_word_length(P1PORT_UART_NUM, UART_DATA_7_BITS);
     uart_set_parity(P1PORT_UART_NUM, UART_PARITY_EVEN);
+    ESP_LOGD("P1 serial config set to", "9600/7E1");
 }
 
 /**
