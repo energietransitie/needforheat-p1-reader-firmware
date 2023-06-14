@@ -3,49 +3,50 @@
 
 #define P1_MEASUREMENT_INTERVAL_MS 5 * 60 * 1000 //milliseconds (5 min * 60  s/min * 1000 ms/s)
 
+//serial port config 9600/7E1 for smart meters adhering to DSMR2 or DSMR3 
+const uart_config_t dsmr2or3_uart_config = {
+    .baud_rate = 9600,
+    .data_bits = UART_DATA_7_BITS,
+    .parity = UART_PARITY_EVEN,
+    .stop_bits = UART_STOP_BITS_1,
+    .flow_ctrl = UART_HW_FLOWCTRL_DISABLE,
+    .rx_flow_ctrl_thresh = 122,
+};
+
+
+//serial port config 11520/8N1 for smartmeters adhering to DSMR4 or DSMR5 
+const uart_config_t dsmr4or5_uart_config = {
+    .baud_rate = 115200,
+    .data_bits = UART_DATA_8_BITS,
+    .parity = UART_PARITY_DISABLE,
+    .stop_bits = UART_STOP_BITS_1,
+    .flow_ctrl = UART_HW_FLOWCTRL_DISABLE,
+    .rx_flow_ctrl_thresh = 122,
+};
+
 /**
  * @brief Initialise UART "P1PORT_UART_NUM" for P1 receive
  */
 void initP1UART() {
-    //initially, set equivalent to setP1UARTConfigDSMR45()
-    uart_config_t uart_config = {
-        .baud_rate = 115200,
-        .data_bits = UART_DATA_8_BITS,
-        .parity = UART_PARITY_DISABLE,
-        .stop_bits = UART_STOP_BITS_1,
-        .flow_ctrl = UART_HW_FLOWCTRL_DISABLE,
-        .rx_flow_ctrl_thresh = 122,
-    };
-
-    ESP_ERROR_CHECK(uart_param_config(P1PORT_UART_NUM, &uart_config));
+    ESP_ERROR_CHECK(uart_param_config(P1PORT_UART_NUM, &dsmr4or5_uart_config));
     ESP_ERROR_CHECK(uart_set_pin(P1PORT_UART_NUM, 17, 16, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE));// Set UART pins(TX: IO17, RX: IO16, RTS: *, CTS: *)
     ESP_ERROR_CHECK(uart_set_line_inverse(P1PORT_UART_NUM, UART_SIGNAL_RXD_INV | UART_SIGNAL_IRDA_RX_INV)); //Invert RX data
     ESP_ERROR_CHECK(uart_driver_install(P1PORT_UART_NUM, P1_BUFFER_SIZE * 2, 0, 0, NULL, 0));
     ESP_LOGD("Inital P1 serial config set to", "115200/8N1");
 }
 /**
- * @brief Update UART "P1PORT_UART_NUM" for P1 receive
+ * @brief Set serial port config for "P1PORT_UART_NUM" compatible with DSMR4 and DSMR5
  */
-void setP1UARTConfigDSMR45() {
-    //UART Configuration for P1-Port reading:
-    //11520 baud, 8N1, no parity
-    uart_set_baudrate(P1PORT_UART_NUM, 115200);
-    uart_set_word_length(P1PORT_UART_NUM, UART_DATA_8_BITS);
-    uart_set_parity(P1PORT_UART_NUM, UART_PARITY_DISABLE);  
+void setP1UARTConfigDSMR4or5() {
+    ESP_ERROR_CHECK(uart_param_config(P1PORT_UART_NUM, &dsmr4or5_uart_config));
     ESP_LOGD("P1 serial config set to", "115200/8N1");
-
-
 }
 
 /**
- * @brief Update UART "P1PORT_UART_NUM" for P1 receive
+ * @brief Set serial port config for "P1PORT_UART_NUM" compatible with DSMR2 and DSMR3
  */
-void setP1UARTConfigDSMR23() {
-    //UART Configuration for P1-Port reading:
-    //9600 baud, 7E1, even parity
-    uart_set_baudrate(P1PORT_UART_NUM, 9600);
-    uart_set_word_length(P1PORT_UART_NUM, UART_DATA_7_BITS);
-    uart_set_parity(P1PORT_UART_NUM, UART_PARITY_EVEN);
+void setP1UARTConfigDSMR2or3() {
+    ESP_ERROR_CHECK(uart_param_config(P1PORT_UART_NUM, &dsmr2or3_uart_config));
     ESP_LOGD("P1 serial config set to", "9600/7E1");
 }
 
