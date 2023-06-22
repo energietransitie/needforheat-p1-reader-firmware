@@ -14,7 +14,7 @@ static void IRAM_ATTR gpio_interrupt_handler(void *args)
     xQueueSendFromISR(interputQueue, &timeDelivered, NULL);
 }
 
-uint32_t uartStartDetectBaudrate()
+uint32_t getBaudrate()
 {    
     abrInit();
     //DRQ pin has inverter to pull up to 5V, which makes it active low:      
@@ -178,42 +178,53 @@ void updateOrDetectBaudrate(uint8_t detect)
 
         ESP_LOGD("NVS","Reading P1baudrate from NVS ... ");
 
-        err = nvs_get_u32(nvsStorage, "P1baudrate", &P1baudrate);
-        switch (err) {
-            case ESP_OK:
-                ESP_LOGD("NVS","Done\n");
-                ESP_LOGD("NVS","P1baudrate = %" PRIu32 "\n", P1baudrate);
-                switch (P1baudrate) {
-                case 9600:
-                    setP1UARTConfigDSMR2or3();
+        if(detect)
+        {
+            err = nvs_get_u32(nvsStorage, "P1baudrate", &P1baudrate);
+            switch (err) {
+                case ESP_OK:
+                    ESP_LOGD("NVS","Done\n");
+                    ESP_LOGD("NVS","P1baudrate = %" PRIu32 "\n", P1baudrate);
+                    switch (P1baudrate) {
+                    case 9600:
+                        setP1UARTConfigDSMR2or3();
+                        break;
+                    case 115200:
+                        setP1UARTConfigDSMR4or5();
+                        break;
+                    }
                     break;
-                case 115200:
-                    setP1UARTConfigDSMR4or5();
+                case ESP_ERR_NVS_NOT_FOUND:
+                    ESP_LOGD("NVS","The value is not initialized yet!\n");
                     break;
-                }
-                break;
-            case ESP_ERR_NVS_NOT_FOUND:
-                ESP_LOGD("NVS","The value is not initialized yet!\n");
-                break;
-            default :
-               ESP_LOGD("NVS","Error (%s) reading!\n", esp_err_to_name(err));
+                default :
+                ESP_LOGD("NVS","Error (%s) reading!\n", esp_err_to_name(err));
+            }
         }
 
-        if(detect || err == ESP_ERR_NVS_NOT_FOUND)
+        if(!detect || err == ESP_ERR_NVS_NOT_FOUND)
         {
-            P1baudrate = uartStartDetectBaudrate();
-            
+            if(detect)
+            {
+                P1baudrate = getBaudrate();
+            }
+
             if(P1baudrate){
 
-                err = nvs_set_u32(nvsStorage, "P1baudrate", P1baudrate);
+                err = nvs_set_u32(nvsStorage, "P1baudrate", P1baudrate);     
+            }
+            else
+            {
+                err = nvs_erase_key(nvsStorage, "P1baudrate");
+                ESP_LOGD("NVS","The value is removed from storage\n");
+            }
 
-                // Commit written value.
+            // Commit written value.
                 // After setting any values, nvs_commit() must be called to ensure changes are written
                 // to flash storage. Implementations may write to storage at other times,
                 // but this is not guaranteed.
                 ESP_LOGD("NVS", "Committing updates in NVS ... ");
                 err = nvs_commit(nvsStorage);
-            }
         }
     
         // Close

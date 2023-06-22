@@ -26,7 +26,7 @@ extern "C"
 #include <esp_err.h>
 #include <esp_timer.h>
 
-uint32_t uartStartDetectBaudrate();
+uint32_t getBaudrate();
 void abrInit();
 uint32_t decideBaudrate__b_s_1(uint32_t smallestBitFlankInterval__us);
 uint32_t calculateBitInterval__us(uint32_t baudrate__b_s_1);

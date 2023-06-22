@@ -137,8 +137,9 @@ unsigned int CRC16(unsigned int crc, unsigned char *buf, int len);
 int p1StringToStruct(const char *p1String, P1Data *p1Struct);
 void printP1Error(int errorType);
 P1Data p1Read();
-uint8_t getIfDSMR5orNewer();
-void setIfDSMR5orNewer(uint8_t DSMRVersion);
+void isDSMR5ValueSameAsNVS(uint8_t dsmrVersion);
+int getIsDSMR5orNewer();
+void setIsDSMR5orNewer(uint8_t DSMRVersion);
 
 
 //JSON
