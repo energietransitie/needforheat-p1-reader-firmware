@@ -19,6 +19,7 @@ extern "C"
 #include <esp_system.h>
 #include <esp_log.h>
 #include <nvs_flash.h>
+#include <nvs.h>
 #include <esp_wifi.h>
 #include <driver/uart.h>
 #include <driver/gpio.h>
@@ -125,6 +126,8 @@ typedef struct channelListstruct {
  //Init
 
 void initP1UART();
+void setP1UARTConfigDSMR4or5();
+void setP1UARTConfigDSMR2or3();
 void initGPIO_P1();
 
 
@@ -134,6 +137,9 @@ unsigned int CRC16(unsigned int crc, unsigned char *buf, int len);
 int p1StringToStruct(const char *p1String, P1Data *p1Struct);
 void printP1Error(int errorType);
 P1Data p1Read();
+void isDSMR5ValueSameAsNVS(uint8_t dsmrVersion);
+int getIsDSMR5orNewer();
+void setIsDSMR5orNewer(uint8_t DSMRVersion);
 
 
 //JSON

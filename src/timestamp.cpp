@@ -2,7 +2,6 @@
 
 time_t parseDsmrTimestamp(const char* dsmrTimestamp, time_t deviceTime)
 {
-    const char * TIMEZONE = "Europe/Amsterdam";
     time_t t;
     char isoBuffer[sizeof "0000-00-00T00:00:00+0000"];
     ESP_LOGI("Time","Smart meter timestamp: %s", dsmrTimestamp);
@@ -53,7 +52,7 @@ time_t parseDsmrTimestamp(const char* dsmrTimestamp, time_t deviceTime)
         {
             offset /= 100;
         }
-        ESP_LOGI("Time","Smart meter ISO8601 timestamp: %s+0%d00", isoBuffer, offset);
+        ESP_LOGI("Time","ISO8601 timestamp (tz='Europe/Amsterdam'): %s+0%d00", isoBuffer, offset);
         
     }
     else
@@ -62,7 +61,7 @@ time_t parseDsmrTimestamp(const char* dsmrTimestamp, time_t deviceTime)
     }
 
     strftime(isoBuffer, sizeof isoBuffer, "%FT%TZ", gmtime(&t));
-    ESP_LOGI("Time","ISO8601 timestamp: %s", isoBuffer);
+    ESP_LOGI("Time","ISO8601 timestamp (tz=UTC): %s", isoBuffer);
     
     ESP_LOGI("Time","Unix timestamp: %jd\n", (intmax_t)t);
     return t;
