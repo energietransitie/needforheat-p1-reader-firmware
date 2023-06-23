@@ -92,9 +92,15 @@ typedef struct CO2_Message {
 #define P1_ERROR_ELECRETURNT2_NOT_FOUND 5
 #define P1_ERROR_GAS_READING_NOT_FOUND 6
 #define P1_ERROR_ELEC_TIMESTAMP_NOT_FOUND 7
+
+// Constant to indicate P1 port parameters unknown
+#define P1_UNKNOWN -1
+#define NVS_KEY_BAUDRATE "P1baudrate"
+#define NVS_KEY_ISATLEASTDSMR5 "isAtLeastDSMR5"
+
 //Struct for holding the P1 Data:
 typedef struct P1Data {
-    uint8_t dsmrVersion;         // DSMR version without decimal point
+    int8_t dsmrVersion;          // DSMR version without decimal point
     double elecUsedT1;           // Electrical Energy used Tariff 1 in kWh
     double elecUsedT2;           // Electrical Energy used Tariff 2 in kWh
     double elecDeliveredT1;      // Electrical Delivered used Tariff 1 in kWh
@@ -137,9 +143,8 @@ unsigned int CRC16(unsigned int crc, unsigned char *buf, int len);
 int p1StringToStruct(const char *p1String, P1Data *p1Struct);
 void printP1Error(int errorType);
 P1Data p1Read();
-void isDSMR5ValueSameAsNVS(uint8_t dsmrVersion);
-int getIsDSMR5orNewer();
-void setIsDSMR5orNewer(uint8_t DSMRVersion);
+int8_t getIsAtLeastDSMR5();
+void setIsAtLeastDSMR5(int8_t dsmrVersion);
 
 
 //JSON

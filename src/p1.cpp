@@ -38,9 +38,9 @@ void readP1Task(void *taskInfo) {
 	 * result.timeGasMeasurement = "632525252525S";
 	*/
 
-	if(result.dsmrVersion > 20 && result.dsmrVersion < 60)//versions are given as whole ints, so 2.1 is 21 and 5.5 is 55 etc. 
+	if (result.dsmrVersion != P1_UNKNOWN)
 	{
-		if(parseDsmrTimestamp(result.timeGasMeasurement, deviceTime()) != -1)//if wrong gas values dont upload
+		if(parseDsmrTimestamp(result.timeGasMeasurement, deviceTime()) != TIME_UNKNOWN)//if wrong gas values dont upload
 		{
 			Measurements::Measurement eMeterReadingSupplyLow("e_use_lo_cum__kWh", result.elecUsedT1, parseDsmrTimestamp(result.timeElecMeasurement, deviceTime()));
 			secureUploadQueue.AddMeasurement(eMeterReadingSupplyLow);

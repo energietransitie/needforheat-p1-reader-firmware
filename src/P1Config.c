@@ -1,7 +1,5 @@
 #include "P1Config.h"
 #include "abr.h"
-#define detect 1
-#define setUnknown 0
 
 #define P1_MEASUREMENT_INTERVAL_MS 5 * 60 * 1000 //milliseconds (5 min * 60  s/min * 1000 ms/s)
 
@@ -265,220 +263,224 @@ P1Data p1Read()
 {
     //little init check to prevent unnecessery loops.
     static int uartInit = 0;
+    int32_t baudrate__b_s_1 = P1_UNKNOWN;
+    //create struct
+    P1Data p1Measurements;
+
     if (!uartInit)
     {
         initP1UART();
 	    initGPIO_P1();
-        //set baudrate
-        updateOrDetectBaudrate(detect);//update or detect in this case
         uartInit = 1;
     }
 
-    //create struct
-    P1Data p1Measurements;
-    //Empty the buffer before requesting data to clear it of junk
-    uart_flush(P1PORT_UART_NUM);
-    ESP_LOGI("P1", "Attempting to read P1 Port");
-    //DRQ pin has inverter to pull up to 5V, which makes it active low:      
-    gpio_set_level(PIN_DRQ, 0);
-
-
-    if(getIsDSMR5orNewer() > 1)
+    baudrate__b_s_1 = getBaudrate__b_s_1();
+    if (baudrate__b_s_1 == P1_UNKNOWN)
     {
-        //Wait for 2 seconds to ensure a message is read  on a DSMR5.x device:
-        ESP_LOGI("P1", "2 seconds");
-        vTaskDelay(2*1000 / portTICK_PERIOD_MS);
+        baudrate__b_s_1 = detectBaudrate__b_s_1();
     }
-    else 
+    setBaudrate__b_s_1(baudrate__b_s_1);
+
+    if (baudrate__b_s_1 == P1_UNKNOWN)
     {
-        //Wait for 18 seconds to ensure a message is read even on a DSMR4.x device:
-        ESP_LOGI("P1", "18 seconds");
-        vTaskDelay(18*1000 / portTICK_PERIOD_MS);
-    }
-    
-   
-    //Write DRQ pin low again (otherwise P1 port keeps transmitting every second);
-    gpio_set_level(PIN_DRQ, 1);
-
-    //Allcoate a buffer with the size of the P1 UART buffer to store P1 data:
-    uint8_t *data = (uint8_t *)malloc(P1_BUFFER_SIZE);
-
-    //Read data from the P1 UART:
-    int uartDataSize = uart_read_bytes(P1PORT_UART_NUM, data, P1_BUFFER_SIZE, 20 / portTICK_PERIOD_MS);
-
-    //If data is received:
-    if (uartDataSize > 0) {
-        ESP_LOGD("P1", "data: %.*s", uartDataSize, data);
-        //Trim the received message to contain only the necessary data and store the CRC as an unsigned int:
-        char *p1MessageStart = strchr((const char *)data, '/'); //Find the position of the start-of-message character ('/')
-        char *p1MessageEnd = NULL;
-        //Only look for end if a start is found:
-        if (p1MessageStart != NULL) p1MessageEnd = strchr((const char *)p1MessageStart, '!');   //Find the position of the end-of-message character ('!')
-
-        //Check if a message is received:
-        if (p1MessageEnd != NULL) {
-
-            //Convert the CRC from string to int:
-            unsigned int receivedCRC;
-            //Start the scanf one char after the end-of-message symbol (location of CRC16), and read a 4-symbol hex number
-            sscanf(p1MessageEnd + 1, "%4X", &receivedCRC);
-            //Allocate memory to copy the trimmed message into
-            uint8_t *p1Message = malloc(P1_MESSAGE_SIZE);
-            //Trim the message to only include 1 full P1 port message:
-            uartDataSize = (int) (p1MessageEnd - p1MessageStart) + 1;
-            memcpy(p1Message, p1MessageStart, uartDataSize);
-            p1Message[uartDataSize] = 0; //Add zero terminator to end of message
-            ESP_LOGD("P1", "Trimmed message length: %d bytes)", uartDataSize);
-
-            //Calculate the CRC of the trimmed message:
-            unsigned int calculatedCRC = CRC16(0x0000, p1Message, uartDataSize);
-            #ifdef DSMR2OR3
-                receivedCRC = calculatedCRC;
-            #endif
-            //Check if CRC match:
-            if (calculatedCRC == receivedCRC) {
-                //log received CRC and calculated CRC for debugging
-                ESP_LOGD("P1", "Received matching CRC: (%4X == %4X)", receivedCRC, calculatedCRC);
-                ESP_LOGI("P1", "Parsing message into struct:");
-            
-                //extract the necessary data from the P1 payload into the struct and check for errors while decoding
-                int result = p1StringToStruct((const char *)p1Message, &p1Measurements);
-
-                if (result == P1_READ_OK) {
-                    //Print the data from the struct to monitor for debugging:
-                    printP1Data(&p1Measurements); 
-
-                    
-                    isDSMR5ValueSameAsNVS(p1Measurements.dsmrVersion);                  
-                }
-                else {
-                    //If a measurement could not be read, print to serial terminal which one was (the first that was) missing
-                    printP1Error(result);
-                }
-                //Start decoding the P1 message:
-            }
-            //if CRC does not match:
-            else {
-                //Log received and calculated CRC for debugging and flash the Error LED
-                ESP_LOGE("ERROR - P1", "CRC DOES NOT MATCH");
-                ESP_LOGD("ERROR - P1", "Received CRC %4X but calculated CRC %4X", receivedCRC, calculatedCRC);
-            }
-
-            //Free the P1 message from memory
-            free(p1Message);
-        }
-        else {
-            ESP_LOGE("P1", "P1 message was invalid");
-             setIsDSMR5orNewer(setUnknown);
-             updateOrDetectBaudrate(setUnknown);//update to unknown in this case
-        }
-    } else if(uartDataSize == -1) {
-        ESP_LOGI("P1", "No UART data found");
-        setIsDSMR5orNewer(setUnknown);
-        updateOrDetectBaudrate(setUnknown);//update to unknown in this case
-    }
-    else{
-        ESP_LOGI("P1", "No P1 message was found");
-        setIsDSMR5orNewer(setUnknown);
-        updateOrDetectBaudrate(setUnknown);//update to unknown in this case
-    }
-    //Release the data from the memory buffer:
-    free(data);
-
-    return p1Measurements;
-
-}
-
-void isDSMR5ValueSameAsNVS(uint8_t dsmrVersion)
-{
-    int isDSMR5orNewer = 0;
-    if(dsmrVersion >= 50)
-    {
-        isDSMR5orNewer = 1;
-    }
-    else if(dsmrVersion >= 20 && dsmrVersion < 50)
-    {
-        isDSMR5orNewer = 0;
+        // if no baudrate is known or detected, just return 'empty' P1data struct 
+        p1Measurements.dsmrVersion = P1_UNKNOWN;
+        return p1Measurements;
     }
     else
     {
-        isDSMR5orNewer = -1;
-    }
+        //Empty the buffer before requesting data to clear it of junk
+        uart_flush(P1PORT_UART_NUM);
 
-    //if current version does not comply with stored version
-    ESP_LOGI("P1", "Version: %d vs %d", isDSMR5orNewer, getIsDSMR5orNewer());
-    if(isDSMR5orNewer != getIsDSMR5orNewer())
-    {
-        ESP_LOGI("P1", "Version: %d", dsmrVersion);
-        setIsDSMR5orNewer(dsmrVersion);
+        ESP_LOGI("P1", "Attempting to read P1 Port");
+        //DRQ pin has inverter to pull up to 5V, which makes it active low:      
+        gpio_set_level(PIN_DRQ, 0);
+
+
+        if(getIsAtLeastDSMR5() == 1)
+        {
+            //Wait for 2 seconds to ensure a message is read  on a DSMR5.x device:
+            ESP_LOGI("P1", "reading for 2 seconds");
+            vTaskDelay(2*1000 / portTICK_PERIOD_MS);
+        }
+        else 
+        {
+            //Wait for 18 seconds to ensure a message is read even on a DSMR4.x device:
+            ESP_LOGI("P1", "reading for 18 seconds");
+            vTaskDelay(18*1000 / portTICK_PERIOD_MS);
+        }
+        
+    
+        //Write DRQ pin low again (otherwise P1 port keeps transmitting every second);
+        gpio_set_level(PIN_DRQ, 1);
+
+        //Allcoate a buffer with the size of the P1 UART buffer to store P1 data:
+        uint8_t *data = (uint8_t *)malloc(P1_BUFFER_SIZE);
+
+        //Read data from the P1 UART:
+        int uartDataSize = uart_read_bytes(P1PORT_UART_NUM, data, P1_BUFFER_SIZE, 20 / portTICK_PERIOD_MS);
+
+        //If data is received:
+        if (uartDataSize > 0) {
+            ESP_LOGD("P1", "data: %.*s", uartDataSize, data);
+            //Trim the received message to contain only the necessary data and store the CRC as an unsigned int:
+            char *p1MessageStart = strchr((const char *)data, '/'); //Find the position of the start-of-message character ('/')
+            char *p1MessageEnd = NULL;
+            //Only look for end if a start is found:
+            if (p1MessageStart != NULL) p1MessageEnd = strchr((const char *)p1MessageStart, '!');   //Find the position of the end-of-message character ('!')
+
+            //Check if a message is received:
+            if (p1MessageEnd != NULL) {
+
+                //Convert the CRC from string to int:
+                unsigned int receivedCRC;
+                //Start the scanf one char after the end-of-message symbol (location of CRC16), and read a 4-symbol hex number
+                sscanf(p1MessageEnd + 1, "%4X", &receivedCRC);
+                //Allocate memory to copy the trimmed message into
+                uint8_t *p1Message = malloc(P1_MESSAGE_SIZE);
+                //Trim the message to only include 1 full P1 port message:
+                uartDataSize = (int) (p1MessageEnd - p1MessageStart) + 1;
+                memcpy(p1Message, p1MessageStart, uartDataSize);
+                p1Message[uartDataSize] = 0; //Add zero terminator to end of message
+                ESP_LOGD("P1", "Trimmed message length: %d bytes)", uartDataSize);
+
+                //Calculate the CRC of the trimmed message:
+                unsigned int calculatedCRC = CRC16(0x0000, p1Message, uartDataSize);
+                #ifdef DSMR2OR3
+                    receivedCRC = calculatedCRC;
+                #endif
+                //Check if CRC match:
+                if (calculatedCRC == receivedCRC) {
+                    //log received CRC and calculated CRC for debugging
+                    ESP_LOGD("P1", "Received matching CRC: (%4X == %4X)", receivedCRC, calculatedCRC);
+                    ESP_LOGI("P1", "Parsing message into struct:");
+                
+                    //extract the necessary data from the P1 payload into the struct and check for errors while decoding
+                    int result = p1StringToStruct((const char *)p1Message, &p1Measurements);
+
+                    if (result == P1_READ_OK) {
+                        //Print the data from the struct to monitor for debugging:
+                        printP1Data(&p1Measurements); 
+
+                        
+                        setIsAtLeastDSMR5(p1Measurements.dsmrVersion);                  
+                    }
+                    else {
+                        //If a measurement could not be read, print to serial terminal which one was (the first that was) missing
+                        printP1Error(result);
+                    }
+                    //Start decoding the P1 message:
+                }
+                //if CRC does not match:
+                else {
+                    //Log received and calculated CRC for debugging and flash the Error LED
+                    ESP_LOGE("ERROR - P1", "CRC DOES NOT MATCH");
+                    ESP_LOGD("ERROR - P1", "Received CRC %4X but calculated CRC %4X", receivedCRC, calculatedCRC);
+                }
+
+                //Free the P1 message from memory
+                free(p1Message);
+            }
+            else {
+                ESP_LOGE("P1", "P1 message was invalid");
+                setIsAtLeastDSMR5(P1_UNKNOWN);
+                setBaudrate__b_s_1(P1_UNKNOWN);
+            }
+        } else if(uartDataSize == -1) {
+            ESP_LOGI("P1", "No UART data found");
+            setIsAtLeastDSMR5(P1_UNKNOWN);
+            setBaudrate__b_s_1(P1_UNKNOWN);
+        }
+        else{
+            ESP_LOGI("P1", "No P1 message was found");
+            setIsAtLeastDSMR5(P1_UNKNOWN);
+            setBaudrate__b_s_1(P1_UNKNOWN);
+        }
+        //Release the data from the memory buffer:
+        free(data);
+
+        return p1Measurements;
     }
 }
 
-void setIsDSMR5orNewer(uint8_t DSMRVersion)
+// stores in nvs whether the dsmrVersion is at least 5 (use P1_UNKNOWN if dsmrVersion is unknown)
+// only performs writes on nvs if the information to be stored is different from what is aloready stored
+void setIsAtLeastDSMR5(int8_t dsmrVersion)
 {
     nvs_handle_t nvsStorage;
     esp_err_t err;
-    int8_t isDSMR5orNewer; // boolean
-    if (DSMRVersion >= 50)
-    {
-        isDSMR5orNewer = 1;
-    }
-    else
-    {
-        isDSMR5orNewer = 0;
-    }
-    
-    
-    err = nvs_open("storage", NVS_READWRITE, &nvsStorage);
-    if (err != ESP_OK) {
-        ESP_LOGD("NVS","Error (%s) opening NVS handle!\n", esp_err_to_name(err));
-    } else {
-        ESP_LOGD("NVS","Opened");
+    int8_t isAtLeastDSMR5 = P1_UNKNOWN;
 
-        if(DSMRVersion)
-        {
-            err = nvs_set_i8(nvsStorage, "isDSMR5orNewer", isDSMR5orNewer);
-        }
-        else
-        {
-            err = nvs_erase_key(nvsStorage, "isDSMR5orNewer");
-            ESP_LOGD("NVS","The value is removed from storage\n");
-        }
+    if(dsmrVersion == P1_UNKNOWN)
+    {
+        isAtLeastDSMR5 = P1_UNKNOWN;
+    }
+    else if(dsmrVersion >= 50)
+    {
+        isAtLeastDSMR5 = 1;
+    } else 
+    {
+        isAtLeastDSMR5 = 0;
+    }
 
-        // Commit written value.
-        // After setting any values, nvs_commit() must be called to ensure changes are written
-        // to flash storage. Implementations may write to storage at other times,
-        // but this is not guaranteed.
-        ESP_LOGD("NVS", "Committing updates in NVS ... ");
-        err = nvs_commit(nvsStorage);
+    // store isAtLeastDSMR5 in nvs if different from stored
+    int8_t isAtLeastDSMR5_stored = getIsAtLeastDSMR5();
+    ESP_LOGI("P1", "isAtLeastDSMR5 stored: %d; new: %d", isAtLeastDSMR5_stored, isAtLeastDSMR5);
+    if(isAtLeastDSMR5 != isAtLeastDSMR5_stored)
+    {
+        // write value to nvs
+        err = nvs_open("storage", NVS_READWRITE, &nvsStorage);
+        if (err != ESP_OK) {
+            ESP_LOGD("NVS","Error (%s) opening NVS handle!\n", esp_err_to_name(err));
+        } else {
+            ESP_LOGD("NVS","Opened");
+
+            if(isAtLeastDSMR5 == P1_UNKNOWN)
+            {
+                err = nvs_erase_key(nvsStorage, NVS_KEY_ISATLEASTDSMR5);
+                ESP_LOGD("NVS","The value %s is removed from nvs\n", NVS_KEY_ISATLEASTDSMR5);
+            }
+            else
+            {
+                err = nvs_set_i8(nvsStorage, NVS_KEY_ISATLEASTDSMR5, isAtLeastDSMR5);
+                ESP_LOGD("NVS","For key %s value %d is stored in nvs\n", NVS_KEY_ISATLEASTDSMR5, isAtLeastDSMR5);
+            }
+
+            // Commit written value.
+            // After setting any values, nvs_commit() must be called to ensure changes are written
+            // to flash storage. Implementations may write to storage at other times,
+            // but this is not guaranteed.
+            ESP_LOGD("NVS", "Committing updates in NVS ... ");
+            err = nvs_commit(nvsStorage);
+        }
         // Close
         nvs_close(nvsStorage);
     }
 }
 
 
-int getIsDSMR5orNewer()
+int8_t getIsAtLeastDSMR5()
 {
     nvs_handle_t nvsStorage;
     esp_err_t err;
-    int8_t isDSMR5orNewer = 0; // boolean
+    int8_t isAtLeastDSMR5 = P1_UNKNOWN; 
     err = nvs_open("storage", NVS_READWRITE, &nvsStorage);
     if (err != ESP_OK) {
         ESP_LOGD("NVS","Error (%s) opening NVS handle!\n", esp_err_to_name(err));
     } else {
         ESP_LOGD("NVS","Opened");
 
-        ESP_LOGD("NVS","Reading if DSMR version is 5 from NVS ... ");
+        ESP_LOGD("NVS","Reading %s value from NVS ... ", NVS_KEY_ISATLEASTDSMR5);
 
-        err = nvs_get_i8(nvsStorage, "isDSMR5orNewer", &isDSMR5orNewer);
+        err = nvs_get_i8(nvsStorage, NVS_KEY_ISATLEASTDSMR5, &isAtLeastDSMR5);
         switch (err) {
             case ESP_OK:
                 ESP_LOGD("NVS","Done\n");
-                ESP_LOGD("NVS","DSMR5 = %" PRId8 "\n", isDSMR5orNewer);
+                ESP_LOGD("NVS","%s read: %" PRId8 "\n", NVS_KEY_ISATLEASTDSMR5, isAtLeastDSMR5);
                 break;
             case ESP_ERR_NVS_NOT_FOUND:
                 ESP_LOGD("NVS","The value is not initialized yet!\n");
-                isDSMR5orNewer = -1;
+                isAtLeastDSMR5 = P1_UNKNOWN;
                 break;
             default :
                ESP_LOGD("NVS","Error (%s) reading!\n", esp_err_to_name(err));
@@ -488,5 +490,5 @@ int getIsDSMR5orNewer()
         nvs_close(nvsStorage);
     }
 
-    return isDSMR5orNewer;
+    return isAtLeastDSMR5;
 }

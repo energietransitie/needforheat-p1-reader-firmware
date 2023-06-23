@@ -14,7 +14,42 @@ static void IRAM_ATTR gpio_interrupt_handler(void *args)
     xQueueSendFromISR(interputQueue, &timeDelivered, NULL);
 }
 
-uint32_t getBaudrate()
+// gets baudrate to use from nvs
+int32_t getBaudrate__b_s_1()
+{    
+    nvs_handle_t nvsStorage;
+    esp_err_t err;
+    int32_t baudrate__b_s_1 = P1_UNKNOWN;
+    err = nvs_open("storage", NVS_READWRITE, &nvsStorage);
+    if (err != ESP_OK) {
+        ESP_LOGD("NVS","Error (%s) opening NVS handle!\n", esp_err_to_name(err));
+    } else {
+        ESP_LOGD("NVS","Opened");
+
+        ESP_LOGD("NVS","Reading %s value from NVS ... ", NVS_KEY_BAUDRATE);
+
+        err = nvs_get_i32(nvsStorage, NVS_KEY_BAUDRATE, &baudrate__b_s_1);
+        switch (err) {
+            case ESP_OK:
+                ESP_LOGD("NVS","Done\n");
+                ESP_LOGD("NVS","%s value read: %" PRId32 "\n", NVS_KEY_BAUDRATE, baudrate__b_s_1);
+                break;
+            case ESP_ERR_NVS_NOT_FOUND:
+                ESP_LOGD("NVS","%s value is not initialized yet!\n", NVS_KEY_BAUDRATE);
+                baudrate__b_s_1 = P1_UNKNOWN;
+                break;
+            default :
+               ESP_LOGD("NVS","Error (%s) reading!\n", esp_err_to_name(err));
+        }
+    
+        // Close
+        nvs_close(nvsStorage);
+    }
+    return baudrate__b_s_1;
+}
+
+// detects baudrate 
+int32_t detectBaudrate__b_s_1()
 {    
     abrInit();
     //DRQ pin has inverter to pull up to 5V, which makes it active low:      
@@ -22,9 +57,9 @@ uint32_t getBaudrate()
     //measure the baudrate
 
     int64_t bitFlankTimestamps__us[bufferSize];
-    uint32_t bitFlankInterval__us = 0;
-    uint32_t smallestBitFlankInterval__us = 0;
-    uint32_t baudrate__b_s_1 = 0;
+    int32_t bitFlankInterval__us = 0;
+    int32_t smallestBitFlankInterval__us = 0;
+    int32_t baudrate__b_s_1 = P1_UNKNOWN;
 
     ESP_LOGI("Timer", "Started timer, time since boot: %lld us", bitFlankTimestamps__us[0] = esp_timer_get_time());
     gpio_set_direction(INPUT_PIN, GPIO_MODE_INPUT);
@@ -67,7 +102,7 @@ uint32_t getBaudrate()
         ESP_LOGI("Smallest bit flank interval found", "%d us", smallestBitFlankInterval__us);
         
         #ifdef USE_NEAREST_BAUDRATE
-            uint32_t candidateBaudRates__b_s_1[3] = {9600, 115200, 0}; // must be 0-terminated!
+            int32_t candidateBaudRates__b_s_1[3] = {9600, 115200, 0}; // must be 0-terminated!
             baudrate__b_s_1 = findNearestBaudRate__b_s_1(candidateBaudRates__b_s_1, smallestBitFlankInterval__us);
             ESP_LOGI("Baudrate found using find nearest:", "%d b/s", baudrate__b_s_1);
         #else
@@ -75,23 +110,12 @@ uint32_t getBaudrate()
             ESP_LOGI("Baudrate found using decide algorithm:", "%d b/s", baudrate__b_s_1);
         #endif
 
-        ESP_LOGI("Baudrate to set:", "%d b/s", (baudrate__b_s_1));
-        switch (baudrate__b_s_1) {
-            case 9600:
-                setP1UARTConfigDSMR2or3();
-                break;
-            case 115200:
-                setP1UARTConfigDSMR4or5();
-                break;
-            default:
-                ESP_LOGE("UART_SETUP", "Invalid baud rate specified");
-        }
-       
     }
     else
     {
         ESP_LOGI("Baudrate", "No baudrate detected until: %lld us since boot", esp_timer_get_time());
     }
+
     //Write DRQ pin low again (otherwise P1 port keeps transmitting every second);
     gpio_set_level(PIN_DRQ, 1);
 
@@ -112,9 +136,9 @@ void abrInit()
     gpio_isr_handler_add(INPUT_PIN, gpio_interrupt_handler, (void *)INPUT_PIN);
 }
 
-uint32_t decideBaudrate__b_s_1(uint32_t smallestBitFlankInterval__us)
+int32_t decideBaudrate__b_s_1(int32_t smallestBitFlankInterval__us)
 {
-    uint32_t bitIntervalThreshold__us = BIT_INTERVAL_THRESHOLD__us;
+    int32_t bitIntervalThreshold__us = BIT_INTERVAL_THRESHOLD__us;
 
     if (smallestBitFlankInterval__us < bitIntervalThreshold__us)
     {
@@ -126,20 +150,20 @@ uint32_t decideBaudrate__b_s_1(uint32_t smallestBitFlankInterval__us)
     }
     else
     {
-        return 0;
+        return P1_UNKNOWN;
     }
 }
 
-uint32_t calculateBitInterval__us(uint32_t baudrate__b_s_1)
+int32_t calculateBitInterval__us(int32_t baudrate__b_s_1)
 {
     return 1e6 / baudrate__b_s_1;
 }
 
 // candidateBaudRates__b_s_1 must be 0-terminated!
-uint32_t findNearestBaudRate__b_s_1(uint32_t * candidateBaudRates__b_s_1, uint32_t smallestBitFlankInterval__us)
+int32_t findNearestBaudRate__b_s_1(int32_t * candidateBaudRates__b_s_1, int32_t smallestBitFlankInterval__us)
 {
 
-    uint32_t nearest__b_s_1 = candidateBaudRates__b_s_1[0];
+    int32_t nearest__b_s_1 = candidateBaudRates__b_s_1[0];
     int smallestDifference__us = (smallestBitFlankInterval__us - calculateBitInterval__us(candidateBaudRates__b_s_1[0]));
     if(smallestDifference__us < 0) {
         smallestDifference__us = smallestDifference__us * -1;
@@ -165,72 +189,63 @@ uint32_t findNearestBaudRate__b_s_1(uint32_t * candidateBaudRates__b_s_1, uint32
     return nearest__b_s_1;
 }
 
-void updateOrDetectBaudrate(uint8_t detect)
+// sets the UART config for the P1 port according to the baudrate__b_s_1
+// stores baudrate__b_s_1 (removes the variable when baudrate__b_s_1 == P1_UNKNOWN)
+// only performs writes on nvs if the information to be stored is different from what is aloready stored
+void setBaudrate__b_s_1(int32_t baudrate__b_s_1)
 {
     nvs_handle_t nvsStorage;
     esp_err_t err;
-    uint32_t P1baudrate = 0; // boolean
-    err = nvs_open("storage", NVS_READWRITE, &nvsStorage);
-    if (err != ESP_OK) {
-        ESP_LOGD("NVS","Error (%s) opening NVS handle!\n", esp_err_to_name(err));
-    } else {
-        ESP_LOGD("NVS","Opened");
+    
+    // set the UART config for the P1 port according to the baudrate__b_s_1
+    switch (baudrate__b_s_1) {
+        case 9600:
+            ESP_LOGI("UART_SETUP", "Setting UART config based on baudrate: %d b/s", (baudrate__b_s_1));
+            setP1UARTConfigDSMR2or3();
+            break;
+        case 115200:
+            ESP_LOGI("UART_SETUP", "Setting UART config based on baudrate: %d b/s", (baudrate__b_s_1));
+            setP1UARTConfigDSMR4or5();
+            break;
+        case P1_UNKNOWN:
+            ESP_LOGD("UART_SETUP", "P1 baudrate unknown; setting UART to safest mode for detection");
+            setP1UARTConfigDSMR4or5();
+            break;
+        default:
+            ESP_LOGE("UART_SETUP", "No P1 UART config available for this baudrate.");
+    }
 
-        ESP_LOGD("NVS","Reading P1baudrate from NVS ... ");
+    // store baudrate__b_s_1 in nvs if different from stored
+    int32_t baudrate_stored__b_s_1 = getBaudrate__b_s_1();
+    ESP_LOGI("P1", "P1 baudrate stored: %d; new: %d", baudrate_stored__b_s_1, baudrate__b_s_1);
+    if(baudrate__b_s_1 != baudrate_stored__b_s_1)
+    {
+        // write value to nvs
+        err = nvs_open("storage", NVS_READWRITE, &nvsStorage);
+        if (err != ESP_OK) {
+            ESP_LOGD("NVS","Error (%s) opening NVS handle!\n", esp_err_to_name(err));
+        } else {
+            ESP_LOGD("NVS","Opened");
 
-        if(detect)
-        {
-            err = nvs_get_u32(nvsStorage, "P1baudrate", &P1baudrate);
-            switch (err) {
-                case ESP_OK:
-                    ESP_LOGD("NVS","Done\n");
-                    ESP_LOGD("NVS","P1baudrate = %" PRIu32 "\n", P1baudrate);
-                    switch (P1baudrate) {
-                    case 9600:
-                        setP1UARTConfigDSMR2or3();
-                        break;
-                    case 115200:
-                        setP1UARTConfigDSMR4or5();
-                        break;
-                    }
-                    break;
-                case ESP_ERR_NVS_NOT_FOUND:
-                    ESP_LOGD("NVS","The value is not initialized yet!\n");
-                    break;
-                default :
-                ESP_LOGD("NVS","Error (%s) reading!\n", esp_err_to_name(err));
-            }
-        }
-
-        if(!detect || err == ESP_ERR_NVS_NOT_FOUND)
-        {
-            if(detect)
+            if(baudrate__b_s_1 == P1_UNKNOWN)
             {
-                P1baudrate = getBaudrate();
-            }
-
-            if(P1baudrate){
-
-                err = nvs_set_u32(nvsStorage, "P1baudrate", P1baudrate);     
+                err = nvs_erase_key(nvsStorage, NVS_KEY_BAUDRATE);
+                ESP_LOGD("NVS","The value %ss is removed from nvs\n", NVS_KEY_BAUDRATE);
             }
             else
             {
-                err = nvs_erase_key(nvsStorage, "P1baudrate");
-                ESP_LOGD("NVS","The value is removed from storage\n");
+                err = nvs_set_i32(nvsStorage, NVS_KEY_BAUDRATE, baudrate__b_s_1);                 
+                ESP_LOGD("NVS","For key %s value % is stored in nvs\n", NVS_KEY_BAUDRATE, baudrate__b_s_1);
             }
 
             // Commit written value.
-                // After setting any values, nvs_commit() must be called to ensure changes are written
-                // to flash storage. Implementations may write to storage at other times,
-                // but this is not guaranteed.
-                ESP_LOGD("NVS", "Committing updates in NVS ... ");
-                err = nvs_commit(nvsStorage);
+            // After setting any values, nvs_commit() must be called to ensure changes are written
+            // to flash storage. Implementations may write to storage at other times,
+            // but this is not guaranteed.
+            ESP_LOGD("NVS", "Committing updates in NVS ... ");
+            err = nvs_commit(nvsStorage);
         }
-    
         // Close
         nvs_close(nvsStorage);
     }
-
-   
-
 }
