@@ -44,7 +44,7 @@ time_t parseDsmrTimestamp(const char* dsmrTimestamp, time_t deviceTime)
         }
         else
         {
-            return t = -1;
+            return t = TIME_UNKNOWN;
         }
 
         offset -= timeStruct.tm_hour;

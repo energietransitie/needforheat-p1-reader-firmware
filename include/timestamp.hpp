@@ -12,6 +12,9 @@
 
 #include <scheduler.hpp>
 
+// Constant to indicate timestamp is unknown
+#define TIME_UNKNOWN -1
+
 /**
 		 * Parse a custom time for testing
 		 *
