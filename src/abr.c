@@ -4,7 +4,6 @@
 #define INPUT_PIN 16
 #define bufferSize 20
 #define BIT_INTERVAL_THRESHOLD__us ((1e6 / 9600 + 1e6 / 115200) / 2)
-#define USE_NEAREST_BAUDRATE
 
 xQueueHandle interputQueue;
 
@@ -101,14 +100,9 @@ int32_t detectBaudrate__b_s_1()
 
         ESP_LOGI("Smallest bit flank interval found", "%d us", smallestBitFlankInterval__us);
         
-        #ifdef USE_NEAREST_BAUDRATE
-            int32_t candidateBaudRates__b_s_1[3] = {9600, 115200, 0}; // must be 0-terminated!
-            baudrate__b_s_1 = findNearestBaudRate__b_s_1(candidateBaudRates__b_s_1, smallestBitFlankInterval__us);
-            ESP_LOGI("Baudrate found using find nearest:", "%d b/s", baudrate__b_s_1);
-        #else
-            baudrate__b_s_1 = decideBaudrate__b_s_1(smallestBitFlankInterval__us);
-            ESP_LOGI("Baudrate found using decide algorithm:", "%d b/s", baudrate__b_s_1);
-        #endif
+        int32_t candidateBaudRates__b_s_1[3] = {9600, 115200, 0}; // must be 0-terminated!
+        baudrate__b_s_1 = findNearestBaudRate__b_s_1(candidateBaudRates__b_s_1, smallestBitFlankInterval__us);
+        ESP_LOGI("Baudrate found using find nearest:", "%d b/s", baudrate__b_s_1);
 
     }
     else
@@ -134,24 +128,6 @@ void abrInit()
 
     //gpio_install_isr_service(0);
     gpio_isr_handler_add(INPUT_PIN, gpio_interrupt_handler, (void *)INPUT_PIN);
-}
-
-int32_t decideBaudrate__b_s_1(int32_t smallestBitFlankInterval__us)
-{
-    int32_t bitIntervalThreshold__us = BIT_INTERVAL_THRESHOLD__us;
-
-    if (smallestBitFlankInterval__us < bitIntervalThreshold__us)
-    {
-        return 115200;
-    }
-    else if (smallestBitFlankInterval__us >= bitIntervalThreshold__us && smallestBitFlankInterval__us < 1000)//< 1ms
-    {
-        return 9600;
-    }
-    else
-    {
-        return P1_UNKNOWN;
-    }
 }
 
 int32_t calculateBitInterval__us(int32_t baudrate__b_s_1)
