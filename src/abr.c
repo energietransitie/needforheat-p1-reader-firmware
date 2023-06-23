@@ -60,54 +60,49 @@ int32_t detectBaudrate__b_s_1()
     int32_t smallestBitFlankInterval__us = 0;
     int32_t baudrate__b_s_1 = P1_UNKNOWN;
 
-    ESP_LOGI("Timer", "Started timer, time since boot: %lld us", bitFlankTimestamps__us[0] = esp_timer_get_time());
+    bitFlankTimestamps__us[0] = esp_timer_get_time();
+    ESP_LOGI("detectBaudrate__b_s_1", "Started timer %.6f since boot", bitFlankTimestamps__us[0]/1e6);
     gpio_set_direction(INPUT_PIN, GPIO_MODE_INPUT);
 
-    static int detected = 0;
+    int detected = 0;
 
-    ESP_LOGI("Baudrate", "calculating baudrate");
+    ESP_LOGI("detectBaudrate__b_s_1", "detecting bit flanks...");
 
-    while (detected < bufferSize && (esp_timer_get_time() < (5000000 + bitFlankTimestamps__us[0]))) //10 seconds after boot
+    while (detected < bufferSize && (esp_timer_get_time() < (5*1e6 + bitFlankTimestamps__us[0]))) //5 seconds after boot
     {
         long long int timeDelivered;
         if (xQueueReceive(interputQueue, &timeDelivered, portTICK_PERIOD_MS))
         {
-            ESP_LOGI("Bit flank detected at","%lld us since boot", timeDelivered);
             detected++;
             bitFlankTimestamps__us[detected] = timeDelivered;
         }
-        else
-        {
-            //ESP_LOGI("Baudrate", "waiting for uart signal");
-        }
-        
     }
 
 
     if(detected > 10)
     {
         smallestBitFlankInterval__us = bitFlankTimestamps__us[1]-bitFlankTimestamps__us[0];
-        ESP_LOGI("Bit flank interval found", "%d us", bitFlankInterval__us);
+        ESP_LOGI("detectBaudrate__b_s_1", "Bit flank interval found: %d us", bitFlankInterval__us);
         for (uint8_t i = 1; i < detected; i++)
         {
             bitFlankInterval__us = bitFlankTimestamps__us[i+1]-bitFlankTimestamps__us[i];
-            ESP_LOGI("Bit flank interval found", "%d us", bitFlankInterval__us);
+            ESP_LOGI("detectBaudrate__b_s_1", "Bit flank interval found: %d us", bitFlankInterval__us);
             if(bitFlankInterval__us < smallestBitFlankInterval__us)
             {
                 smallestBitFlankInterval__us = bitFlankInterval__us;
             }
         }
 
-        ESP_LOGI("Smallest bit flank interval found", "%d us", smallestBitFlankInterval__us);
+        ESP_LOGI("detectBaudrate__b_s_1", "Smallest bit flank interval found: %d us", smallestBitFlankInterval__us);
         
         int32_t candidateBaudRates__b_s_1[3] = {9600, 115200, 0}; // must be 0-terminated!
         baudrate__b_s_1 = findNearestBaudRate__b_s_1(candidateBaudRates__b_s_1, smallestBitFlankInterval__us);
-        ESP_LOGI("Baudrate found using find nearest:", "%d b/s", baudrate__b_s_1);
+        ESP_LOGI("detectBaudrate__b_s_1", "Baudrate found: %d b/s", baudrate__b_s_1);
 
     }
     else
     {
-        ESP_LOGI("Baudrate", "No baudrate detected until: %lld us since boot", esp_timer_get_time());
+        ESP_LOGI("detectBaudrate__b_s_1", "No baudrate detected until %.6f s since timer start", (esp_timer_get_time()-bitFlankTimestamps__us[0])/1e6);
     }
 
     //Write DRQ pin low again (otherwise P1 port keeps transmitting every second);
