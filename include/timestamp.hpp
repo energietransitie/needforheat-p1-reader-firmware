@@ -5,6 +5,7 @@
 #include <string.h>
 #include <sys/time.h>
 #include <time.h>
+#include <nvs_flash.h>
 #include <esp_system.h>
 #include <esp_log.h>
 #include <esp_err.h>
@@ -28,3 +29,5 @@ time_t parseDsmrTimestamp(const char* dsmrTimestamp, time_t deviceUTC);
 		 */
 tm *setHours(tm *timeStruct, time_t deviceUTC);
 time_t deviceTime();
+
+tm *compareWithNVSTimestamp(tm *dsmr23Time);

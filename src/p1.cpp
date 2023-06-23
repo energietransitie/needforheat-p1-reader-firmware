@@ -23,12 +23,7 @@ void readP1Task(void *taskInfo) {
 	Measurements::Measurement::AddFormatter("g_use_cum__m3", "%7.3f"); 
 
 	//offline testing for dsmr timestamps
-	//parseDsmrTimestamp("230530161324S", deviceTime());
-
-
-	//call this function if you want to use a wide variety of test cases
-	//Go to the function to modify or change the cases
-	//parsedTimestampsTests();
+	parsedTimestampsTests();
 
     P1Data result = p1Read();
 
