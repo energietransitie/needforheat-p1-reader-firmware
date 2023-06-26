@@ -7,7 +7,7 @@ constexpr const char *DEVICE_TYPE_NAME = "twomes-p1-reader-firmware";
 
 extern "C" void app_main(void)
 {
-	Scheduler::AddTask(readP1Task, "uart_read_p1", 16384, NULL, 10, Scheduler::Interval::MINUTES_1);
+	Scheduler::AddTask(readP1Task, "uart_read_p1", 16384, NULL, 10, Scheduler::Interval::MINUTES_5);
 
 	// Add the generic tasks to the scheduler,
 	// heartbeat, timesync and optionally presence detection and OTA updates.

@@ -158,53 +158,56 @@ int p1StringToStruct(const char *p1String, P1Data *p1Struct) {
     else
         return P1_ERROR_ELECRETURNT2_NOT_FOUND;
 
-uint32_t currentBaud = 0;
-uart_get_baudrate(P1PORT_UART_NUM, &currentBaud);
-if(currentBaud < 115200)//dsmr2/3 smart meters
-{
-    //elec Timestamp OBIS reference 
-    char *elecTimePos = strstr(p1String, "0-0:24.3.0");
-    if (elecTimePos != NULL) {
-        sscanf(elecTimePos, "0-0:24.3.0(%12s", p1Struct->timeElecMeasurement);
-        p1Struct->timeElecMeasurement[12] = 0; //add a zero terminator at the end to read as string
+    uint32_t currentBaud = 0;
+    uart_get_baudrate(P1PORT_UART_NUM, &currentBaud);
+    if(currentBaud < 115200)//dsmr2/3 smart meters
+    {
+        //elec Timestamp OBIS reference 
+        char *elecTimePos = strstr(p1String, "0-0:24.3.0");
+        if (elecTimePos != NULL) {
+            sscanf(elecTimePos, "0-0:24.3.0(%12s", p1Struct->timeElecMeasurement);
+            p1Struct->timeElecMeasurement[12] = 0; //add a zero terminator at the end to read as string
+        }
     }
-}
-else
-{
-    //elec Timestamp OBIS reference 
-    char *elecTimePos = strstr(p1String, "0-0:1.0.0");
-    if (elecTimePos != NULL) {
-        sscanf(elecTimePos, "0-0:1.0.0(%13s", p1Struct->timeElecMeasurement);
-        p1Struct->timeElecMeasurement[13] = 0; //add a zero terminator at the end to read as string
+    else
+    {
+        //elec Timestamp OBIS reference 
+        char *elecTimePos = strstr(p1String, "0-0:1.0.0");
+        if (elecTimePos != NULL) {
+            sscanf(elecTimePos, "0-0:1.0.0(%13s", p1Struct->timeElecMeasurement);
+            p1Struct->timeElecMeasurement[13] = 0; //add a zero terminator at the end to read as string
+        }
     }
-}
 
-#ifdef DSMR2OR3
-    //DSMR 2.2 had different layout of gas timestap and gas reading
-    //Gas reading OBIS: 0-n:24.3.0 //n can vary depending on which channel it is installed
-    char *gasTimePos = strstr(p1String, "0-1:24.3.0");
-    if (gasTimePos != NULL) {
-        sscanf(gasTimePos, "0-1:24.3.0(%12s)", p1Struct->timeGasMeasurement);
-        p1Struct->timeGasMeasurement[12] = 0; //Add a null terminator to print it as a string
+    if(currentBaud < 115200)//dsmr2/3 smart meters
+    {
+        //DSMR 2.2 had different layout of gas timestap and gas reading
+        //Gas reading OBIS: 0-n:24.3.0 //n can vary depending on which channel it is installed
+        char *gasTimePos = strstr(p1String, "0-1:24.3.0");
+        if (gasTimePos != NULL) {
+            sscanf(gasTimePos, "0-1:24.3.0(%12s)", p1Struct->timeGasMeasurement);
+            p1Struct->timeGasMeasurement[12] = 0; //Add a null terminator to print it as a string
+        }
+        else
+            return P1_ERROR_GAS_READING_NOT_FOUND;
+        char *gasPos = strstr(p1String, "m3)");
+        if (gasTimePos != NULL) {
+            sscanf(gasPos, "m3)\n(%lf)", &p1Struct->gasUsage);
+        }
+        else
+            return P1_ERROR_GAS_READING_NOT_FOUND;
     }
     else
-        return P1_ERROR_GAS_READING_NOT_FOUND;
-    char *gasPos = strstr(p1String, "m3)");
-    if (gasTimePos != NULL) {
-        sscanf(gasPos, "m3)\n(%lf)", &p1Struct->gasUsage);
+    {
+        //Gas reading OBIS: 0-n:24.2.1 //n can vary depending on which channel it is installed
+        char *gasPos = strstr(p1String, "0-1:24.2.1");
+        if (gasPos != NULL) {
+            sscanf(gasPos, "0-1:24.2.1(%13s)(%lf)", p1Struct->timeGasMeasurement, &p1Struct->gasUsage);
+            p1Struct->timeGasMeasurement[13] = 0; //Add a null terminator to print it as a string
+        }
+        else
+            return P1_ERROR_GAS_READING_NOT_FOUND;
     }
-    else
-        return P1_ERROR_GAS_READING_NOT_FOUND;
-#else
-    //Gas reading OBIS: 0-n:24.2.1 //n can vary depending on which channel it is installed
-    char *gasPos = strstr(p1String, "0-1:24.2.1");
-    if (gasPos != NULL) {
-        sscanf(gasPos, "0-1:24.2.1(%13s)(%lf)", p1Struct->timeGasMeasurement, &p1Struct->gasUsage);
-        p1Struct->timeGasMeasurement[13] = 0; //Add a null terminator to print it as a string
-    }
-    else
-        return P1_ERROR_GAS_READING_NOT_FOUND;
-#endif
     //If none of the statements reached an "else" all measurements were read correctly!
     return P1_READ_OK;
 }
@@ -265,6 +268,8 @@ P1Data p1Read()
 {
     //little init check to prevent unnecessery loops.
     static int uartInit = 0;
+    uint32_t currentBaud = 0;
+    uart_get_baudrate(P1PORT_UART_NUM, &currentBaud);
     if (!uartInit)
     {
         initP1UART();
@@ -332,9 +337,10 @@ P1Data p1Read()
 
             //Calculate the CRC of the trimmed message:
             unsigned int calculatedCRC = CRC16(0x0000, p1Message, uartDataSize);
-            #ifdef DSMR2OR3
+            if (currentBaud < 115200)
+            {
                 receivedCRC = calculatedCRC;
-            #endif
+            }
             //Check if CRC match:
             if (calculatedCRC == receivedCRC) {
                 //log received CRC and calculated CRC for debugging
