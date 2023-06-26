@@ -3,7 +3,9 @@
 
 #define INPUT_PIN 16
 #define bufferSize 20
-#define BIT_INTERVAL_THRESHOLD__us ((1e6 / 9600 + 1e6 / 115200) / 2)
+
+static int32_t currentBaudrate_b_s_1 = 0;       // Initialize to a default value
+static bool initializedCurrentBaudrate_b_s_1 = false;
 
 xQueueHandle interputQueue;
 
@@ -15,36 +17,41 @@ static void IRAM_ATTR gpio_interrupt_handler(void *args)
 
 // gets baudrate to use from nvs
 int32_t getBaudrate__b_s_1()
-{    
-    nvs_handle_t nvsStorage;
-    esp_err_t err;
-    int32_t baudrate__b_s_1 = P1_UNKNOWN;
-    err = nvs_open("storage", NVS_READWRITE, &nvsStorage);
-    if (err != ESP_OK) {
-        ESP_LOGD("NVS","Error (%s) opening NVS handle!\n", esp_err_to_name(err));
-    } else {
-        ESP_LOGD("NVS","Opened");
+{
+    if (!initializedCurrentBaudrate_b_s_1) {
+        // Get baudrate from NVS and store it in RAM
+        nvs_handle_t nvsStorage;
+        esp_err_t err;
+        currentBaudrate_b_s_1 = P1_UNKNOWN;
+        err = nvs_open("storage", NVS_READWRITE, &nvsStorage);
+        if (err != ESP_OK) {
+            ESP_LOGD("NVS","Error (%s) opening NVS handle!\n", esp_err_to_name(err));
+        } else {
+            ESP_LOGD("NVS","Opened");
 
-        ESP_LOGD("NVS","Reading %s value from NVS ... ", NVS_KEY_BAUDRATE);
+            ESP_LOGD("NVS","Reading %s value from NVS ... ", NVS_KEY_BAUDRATE);
 
-        err = nvs_get_i32(nvsStorage, NVS_KEY_BAUDRATE, &baudrate__b_s_1);
-        switch (err) {
-            case ESP_OK:
-                ESP_LOGD("NVS","Done\n");
-                ESP_LOGD("NVS","%s value read: %" PRId32 "\n", NVS_KEY_BAUDRATE, baudrate__b_s_1);
-                break;
-            case ESP_ERR_NVS_NOT_FOUND:
-                ESP_LOGD("NVS","%s value is not initialized yet!\n", NVS_KEY_BAUDRATE);
-                baudrate__b_s_1 = P1_UNKNOWN;
-                break;
-            default :
-               ESP_LOGD("NVS","Error (%s) reading!\n", esp_err_to_name(err));
+            err = nvs_get_i32(nvsStorage, NVS_KEY_BAUDRATE, &currentBaudrate_b_s_1);
+            switch (err) {
+                case ESP_OK:
+                    ESP_LOGD("NVS","Done\n");
+                    ESP_LOGD("NVS","%s value read: %" PRId32 "\n", NVS_KEY_BAUDRATE, currentBaudrate_b_s_1);
+                    break;
+                case ESP_ERR_NVS_NOT_FOUND:
+                    ESP_LOGD("NVS","%s value is not initialized yet!\n", NVS_KEY_BAUDRATE);
+                    currentBaudrate_b_s_1 = P1_UNKNOWN;
+                    break;
+                default :
+                ESP_LOGD("NVS","Error (%s) reading!\n", esp_err_to_name(err));
+            }
+        
+            // Close
+            nvs_close(nvsStorage);
         }
-    
-        // Close
-        nvs_close(nvsStorage);
-    }
-    return baudrate__b_s_1;
+        // Set the flag to indicate baudrate has been initialized from NVS
+        initializedCurrentBaudrate_b_s_1 = true;
+    } 
+    return currentBaudrate_b_s_1;
 }
 
 // detects baudrate 
@@ -160,45 +167,27 @@ int32_t findNearestBaudRate__b_s_1(int32_t * candidateBaudRates__b_s_1, int32_t 
     return nearest__b_s_1;
 }
 
-// sets the UART config for the P1 port according to the baudrate__b_s_1
 // stores baudrate__b_s_1 (removes the variable when baudrate__b_s_1 == P1_UNKNOWN)
 // only performs writes on nvs if the information to be stored is different from what is aloready stored
+// sets the UART config for the P1 port according to the baudrate__b_s_1
 void setBaudrate__b_s_1(int32_t baudrate__b_s_1)
 {
-    nvs_handle_t nvsStorage;
-    esp_err_t err;
-    
-    // set the UART config for the P1 port according to the baudrate__b_s_1
-    switch (baudrate__b_s_1) {
-        case 9600:
-            ESP_LOGI("UART_SETUP", "Setting UART config based on baudrate: %d b/s", (baudrate__b_s_1));
-            setP1UARTConfigDSMR2or3();
-            break;
-        case 115200:
-            ESP_LOGI("UART_SETUP", "Setting UART config based on baudrate: %d b/s", (baudrate__b_s_1));
-            setP1UARTConfigDSMR4or5();
-            break;
-        case P1_UNKNOWN:
-            ESP_LOGD("UART_SETUP", "P1 baudrate unknown; setting UART to safest mode for detection");
-            setP1UARTConfigDSMR4or5();
-            break;
-        default:
-            ESP_LOGE("UART_SETUP", "No P1 UART config available for this baudrate.");
-    }
 
-    // store baudrate__b_s_1 in nvs if different from stored
+    // store currentBaudrate_b_s_1 in nvs if different from stored
     int32_t baudrate_stored__b_s_1 = getBaudrate__b_s_1();
     ESP_LOGI("P1", "P1 baudrate stored: %d; new: %d", baudrate_stored__b_s_1, baudrate__b_s_1);
     if(baudrate__b_s_1 != baudrate_stored__b_s_1)
     {
         // write value to nvs
+        nvs_handle_t nvsStorage;
+        esp_err_t err;
         err = nvs_open("storage", NVS_READWRITE, &nvsStorage);
         if (err != ESP_OK) {
             ESP_LOGD("NVS","Error (%s) opening NVS handle!\n", esp_err_to_name(err));
         } else {
             ESP_LOGD("NVS","Opened");
 
-            if(baudrate__b_s_1 == P1_UNKNOWN)
+            if(currentBaudrate_b_s_1 == P1_UNKNOWN)
             {
                 err = nvs_erase_key(nvsStorage, NVS_KEY_BAUDRATE);
                 ESP_LOGD("NVS","The value %ss is removed from nvs\n", NVS_KEY_BAUDRATE);
@@ -219,4 +208,27 @@ void setBaudrate__b_s_1(int32_t baudrate__b_s_1)
         // Close
         nvs_close(nvsStorage);
     }
+
+    // Update the RAM value
+    currentBaudrate_b_s_1 = baudrate__b_s_1;
+    // Set the flag to indicate baudrate has been initialized in RAM
+    initializedCurrentBaudrate_b_s_1 = true;
+    // set the UART config for the P1 port according to the currentBaudrate_b_s_1
+    switch (currentBaudrate_b_s_1) {
+        case 9600:
+            ESP_LOGI("UART_SETUP", "Setting UART config based on baudrate: %d b/s", (currentBaudrate_b_s_1));
+            setP1UARTConfigDSMR2or3();
+            break;
+        case 115200:
+            ESP_LOGI("UART_SETUP", "Setting UART config based on baudrate: %d b/s", (currentBaudrate_b_s_1));
+            setP1UARTConfigDSMR4or5();
+            break;
+        case P1_UNKNOWN:
+            ESP_LOGD("UART_SETUP", "P1 baudrate unknown; setting UART to safest mode for detection");
+            setP1UARTConfigDSMR4or5();
+            break;
+        default:
+            ESP_LOGE("UART_SETUP", "No P1 UART config available for this baudrate.");
+    }
+
 }
