@@ -156,10 +156,10 @@ int p1StringToStruct(const char *p1String, P1Data *p1Struct) {
     else
         return P1_ERROR_ELECRETURNT2_NOT_FOUND;
 
-    uint32_t currentBaud = 0;
-    uart_get_baudrate(P1PORT_UART_NUM, &currentBaud);
-    if(currentBaud < 115200)//dsmr2/3 smart meters
+
+    if(getBaudrate__b_s_1() == 9600)//dsmr2/3 smart meters
     {
+        ESP_LOGI("Baudrate", "dsmr 2/3 settings");
         //elec Timestamp OBIS reference 
         char *elecTimePos = strstr(p1String, "0-0:24.3.0");
         if (elecTimePos != NULL) {
@@ -167,9 +167,10 @@ int p1StringToStruct(const char *p1String, P1Data *p1Struct) {
             p1Struct->timeElecMeasurement[12] = 0; //add a zero terminator at the end to read as string
         }
     }
-    else
+    else // DSMR4 or newer smart meters
     {
         //elec Timestamp OBIS reference 
+        ESP_LOGI("Baudrate", "dsmr 4/5 settings");
         char *elecTimePos = strstr(p1String, "0-0:1.0.0");
         if (elecTimePos != NULL) {
             sscanf(elecTimePos, "0-0:1.0.0(%13s", p1Struct->timeElecMeasurement);
@@ -177,8 +178,10 @@ int p1StringToStruct(const char *p1String, P1Data *p1Struct) {
         }
     }
 
-    if(getBaudrate__b_s_1 == 9600) // DSMR2/3 smart meters
+    if(getBaudrate__b_s_1() == 9600) // DSMR2/3 smart meters
     {
+        
+        ESP_LOGI("Baudrate", "dsmr 2/3 settings");
         //DSMR 2.2 had different layout of gas timestap and gas reading
         //Gas reading OBIS: 0-n:24.3.0 //n can vary depending on which channel it is installed
         char *gasTimePos = strstr(p1String, "0-1:24.3.0");
@@ -197,6 +200,7 @@ int p1StringToStruct(const char *p1String, P1Data *p1Struct) {
     }
     else // DSMR4 or newer smart meters
     {
+        ESP_LOGI("Baudrate", "dsmr 4/5 settings");
         //Gas reading OBIS: 0-n:24.2.1 //n can vary depending on which channel it is installed
         char *gasPos = strstr(p1String, "0-1:24.2.1");
         if (gasPos != NULL) {
@@ -349,7 +353,7 @@ P1Data p1Read()
 
                 //Calculate the CRC of the trimmed message:
                 unsigned int calculatedCRC = CRC16(0x0000, p1Message, uartDataSize);
-                if (getBaudrate__b_s_1 == 9600)
+                if (getBaudrate__b_s_1() == 9600)
                 {
                     receivedCRC = calculatedCRC;
                 }
