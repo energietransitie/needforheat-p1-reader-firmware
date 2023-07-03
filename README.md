@@ -67,15 +67,14 @@ This example was tested on:
 List of features ready and TODOs for future development (other than the [features of the generic Twomes firmware](https://github.com/energietransitie/twomes-generic-esp-firmware#features)). 
 
 Ready:
-* Automatically detects the proper settings for all versions: DSMR2-DSMR5.
-* Read data from all current smart meter versions: DSMR2-DSMR5
-* measurement timestamps are based on the timestamps provided by the P1 port, where possible;
-* erroneous measurements are rejected (e.g. occasional erroneous measurements given by Sagemcom XS210 (meter type E0047);
+* Automatically identifies the appropriate configurations for all versions: DSMR2-DSMR5.
+* Retrieves information from all current smart meter variations: DSMR2-DSMR5.
+* Utilizes timestamps provided by the P1 port whenever available for measurement timestamps.
+* Discards inaccurate measurements (e.g., sporadic errors exhibited by Sagemcom XS210, meter type E0047).
 
 To-do:
-* Read data from the P1 port of devices adhering to DSMRv2 and DSMRv3 (UART settings 9600/7E1).
-* Indicate status and error via LEDs.
-* Reset Wi-Fi provisioning by a long press (>10s) of the button `K` (PCB label `GPIO12 (SW3)`). 
+* Provide visual feedback on status and errors through LEDs.
+* Perform a Wi-Fi provisioning reset by holding down the K button (labeled as GPIO12 (SW3) on the PCB) for more than 10 seconds.
 
 ## Status
 Project is: _in progress_
