@@ -16,11 +16,11 @@ auto secureUploadQueue = SecureUpload::Queue::GetInstance();
 //function to read P1 port and store message in a buffer
 void readP1Task(void *taskInfo) {
 	// Add formatters for all the measurements.
-	Measurements::Measurement::AddFormatter("e_use_lo_cum__kWh", "%4.3f");
-	Measurements::Measurement::AddFormatter("e_use_hi_cum__kWh", "%4.3f");
-	Measurements::Measurement::AddFormatter("e_ret_lo_cum__kWh", "%4.3f");
-	Measurements::Measurement::AddFormatter("e_ret_hi_cum__kWh", "%4.3f");
-	Measurements::Measurement::AddFormatter("g_use_cum__m3", "%7.3f"); 
+	Measurements::Measurement::AddFormatter("e_use_lo_cum__kWh", "%.3f");
+	Measurements::Measurement::AddFormatter("e_use_hi_cum__kWh", "%.3f");
+	Measurements::Measurement::AddFormatter("e_ret_lo_cum__kWh", "%.3f");
+	Measurements::Measurement::AddFormatter("e_ret_hi_cum__kWh", "%.3f");
+	Measurements::Measurement::AddFormatter("g_use_cum__m3", "%.3f"); 
 
 	//offline testing for dsmr timestamps
 	//parseDsmrTimestamp("230530161324S", deviceTime());
