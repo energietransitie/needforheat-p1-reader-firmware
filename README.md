@@ -30,7 +30,7 @@ The Twomes P1 Reader, in addition to [generic data sent by any Twomes measuremen
 | Bluetooth  | `occupancy__p`         | [-]   | %u   | 0:10:00           | number of smartphones responding to Bluetooth name request                        |
 
 ## Deploying
-This section describes how you can deploy binary releases of the firmware on the [twomes-p1-gateway](https://github.com/energietransitie/twomes-p1-gateway-hardware), i.e. without changing the source code, without a development environment and without needing to compile the source code. The last paragraph of this section describes how to deploy on the [M5Stack CoreInk](https://github.com/m5stack/M5-CoreInk).
+This section provides instructions on deploying pre-compiled firmware releases on the [twomes-p1-gateway](https://github.com/energietransitie/twomes-p1-gateway-hardware). This deployment method allows you to update the firmware without modifying the source code, without requiring a development environment, and without the need to compile the source code. The final paragraph in this section outlines the deployment process specifically for the [M5Stack CoreInk](https://github.com/m5stack/M5-CoreInk).
 
 ### Prerequisites
 To deploy the firmware, in addition to the [generic prerequisites for deploying Twomes firmware](https://github.com/energietransitie/twomes-generic-esp-firmware#prerequisites), you need:
