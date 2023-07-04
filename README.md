@@ -80,6 +80,7 @@ To-do:
 * Provide visual feedback on status and errors through LEDs.
 * Support running on an [M5Stack CoreInk](https://github.com/m5stack/M5-CoreInk) in combination with a (future) P1-BASE extension.
 
+
 ## Status
 Project is: _in progress_
 
