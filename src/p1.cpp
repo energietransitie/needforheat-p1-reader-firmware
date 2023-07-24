@@ -2,8 +2,8 @@
 #include <string.h>
 #include <p1.hpp>
 #include <P1Config.h>
-#include <timestamp.hpp>
-#include <timestampTest.hpp>
+#include <dsmr_timestamp.hpp>
+#include <dsmr_timestampTest.hpp>
 
 //ESP-IDF drivers:
 #include <scheduler.hpp>
@@ -40,21 +40,25 @@ void readP1Task(void *taskInfo) {
 
 	if (result.dsmrVersion != P1_UNKNOWN)
 	{
-		if(parseDsmrTimestamp(result.timeGasMeasurement, deviceTime()) != TIME_UNKNOWN)//if wrong gas values dont upload
+		std::string eTimestampStr(result.timeElecMeasurement);
+		std::string gTimestampStr(result.timeElecMeasurement);
+
+		// if(parseDsmrTimestamp(result.timeGasMeasurement, deviceTime()) != TIME_UNKNOWN)//if wrong gas values dont upload
+		if(true)//if wrong gas values dont upload
 		{
-			Measurements::Measurement eMeterReadingSupplyLow("e_use_lo_cum__kWh", result.elecUsedT1, parseDsmrTimestamp(result.timeElecMeasurement, deviceTime()));
+			Measurements::Measurement eMeterReadingSupplyLow("e_use_lo_cum__kWh", result.elecUsedT1, parseDsmrTimestamp(eTimestampStr, deviceTime()));
 			secureUploadQueue.AddMeasurement(eMeterReadingSupplyLow);
 
-			Measurements::Measurement eMeterReadingSupplyHigh("e_use_hi_cum__kWh", result.elecUsedT2, parseDsmrTimestamp(result.timeElecMeasurement, deviceTime()));
+			Measurements::Measurement eMeterReadingSupplyHigh("e_use_hi_cum__kWh", result.elecUsedT2, parseDsmrTimestamp(eTimestampStr, deviceTime()));
 			secureUploadQueue.AddMeasurement(eMeterReadingSupplyHigh);
 
-			Measurements::Measurement eMeterReadingReturnLow("e_ret_lo_cum__kWh", result.elecDeliveredT1, parseDsmrTimestamp(result.timeElecMeasurement, deviceTime()));
+			Measurements::Measurement eMeterReadingReturnLow("e_ret_lo_cum__kWh", result.elecDeliveredT1, parseDsmrTimestamp(eTimestampStr, deviceTime()));
 			secureUploadQueue.AddMeasurement(eMeterReadingReturnLow);
 
-			Measurements::Measurement eMeterReadingReturnHigh("e_ret_hi_cum__kWh", result.elecDeliveredT2, parseDsmrTimestamp(result.timeElecMeasurement, deviceTime()));
+			Measurements::Measurement eMeterReadingReturnHigh("e_ret_hi_cum__kWh", result.elecDeliveredT2, parseDsmrTimestamp(eTimestampStr, deviceTime()));
 			secureUploadQueue.AddMeasurement(eMeterReadingReturnHigh);
 
-			Measurements::Measurement gMeterReadingSupply("g_use_cum__m3", result.gasUsage, parseDsmrTimestamp(result.timeGasMeasurement, deviceTime()));
+			Measurements::Measurement gMeterReadingSupply("g_use_cum__m3", result.gasUsage, parseDsmrTimestamp(gTimestampStr, deviceTime()));
 			secureUploadQueue.AddMeasurement(gMeterReadingSupply);
 		}
 		else
