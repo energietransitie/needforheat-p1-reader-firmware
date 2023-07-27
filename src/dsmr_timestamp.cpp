@@ -3,8 +3,7 @@
 #include <esp_log.h>
 #include <iomanip>
 #include <sstream>
-#include <boost/date_time/posix_time/posix_time.hpp>
-#include <boost/date_time/local_time/local_time.hpp>
+#include <mbedtls/platform_time.h>
 
 static int32_t lastTimestamp = TIME_UNKNOWN;       // Initialize to a default value
 static bool initializedLastTimeStamp = false;
@@ -99,76 +98,113 @@ time_t parseDsmrTimestamp(const std::string& timestampStr, time_t currentDeviceT
   ESP_LOGD("parseDsmrTimestamp","dsmr timestamp: %s; current: %ld", timestampStr.c_str(), currentDeviceTime);
 
   const char* timeZone = "CET-1CEST,M3.5.0/2,M10.5.0/3";  // Europe/Amsterdam time zone
-  boost::local_time::time_zone_ptr tz(new boost::local_time::posix_time_zone(timeZone));
-  boost::local_time::local_date_time ldt(boost::local_time::not_a_date_time);
-  boost::posix_time::time_duration td;
+  mbedtls_platform_gmtime_time_t timeStruct;
+  mbedtls_platform_gmtime_init(&timeStruct);
 
   try {
-    // Parse the timestamp string with the given format and time zone
-    boost::posix_time::ptime parsedTime = boost::posix_time::from_string(timestampStr);
-    ldt = boost::local_time::local_date_time(parsedTime, tz);
-    // Check for ambiguous local time
-    if (ldt.is_dst() == boost::local_time::ambiguous) {
-      // Handle ambiguous local time
-      ESP_LOGE("parseDsmrTimestamp","Ambiguous local time for: %s", truncatedStr.c_str());
-      // Timestamp in ambiguous hour!
-      // First check if the timestamp format is YYMMDDhhmmssX
+    // Create a truncated C-string with the first 12 characters (YYMMDDhhmmss)
+    char truncatedStr[13];
+    strncpy(truncatedStr, timestampStr.c_str(), 12);
+    truncatedStr[12] = '\0'; // Null-terminate the truncated C-string
+
+    // Parse the truncated C-string to extract the components
+    int year, month, day, hour, minute, second;
+    if (sscanf(truncatedStr, "%2d%2d%2d%2d%2d%2d", &year, &month, &day, &hour, &minute, &second) != 6) {
+        // Handle parsing error
+        ESP_LOGE("parseDsmrTimestamp", "Failed to parse timestamp");
+        return TIME_UNKNOWN; // Return an error value
+    }
+
+    // Set the parsed values in the timeStruct
+    timeStruct.year = year + 2000; // Assuming the timestamp is in YY format
+    timeStruct.mon = month;
+    timeStruct.day = day;
+    timeStruct.hour = hour;
+    timeStruct.min = minute;
+    timeStruct.sec = second;
+
+    // Use localtime_r() to check for ambiguity
+    mbedtls_platform_localtime_r(mbedtls_platform_gmtime(&timeStruct), &timeStruct);
+
+    // Check for ambiguity in the .dst value
+    if (timeStruct.dst == -1) {
+      // Handle ambiguous local time (YYMMDDhhmmss format)
+
       if (timestampStr.length() == 13) {
-        // Timestamp format: YYMMDDhhmmssX (DSMR4 or higher)
-        // Just look at the character in the X position.
-        if (timestampStr[12] == 'S') {
-          ldt.set_dst(boost::local_time::dst_status::daylight_time);
-        } else if (timestampStr[12] == 'W') {
-          ldt.set_dst(boost::local_time::dst_status::standard_time);
-        } else {
-          // Handle unexpected last character
-        ESP_LOGE("parseDsmrTimestamp","unexpected last character");
-          return TIME_UNKNOWN; // Return an error value
-        }
+          // Check the 'X' character to disambiguate
+          char dstFlag = timestampStr[12]; // 'X' character indicating DST status
+          if (dstFlag == 'S') {
+              timeStruct.dst = MBEDTLS_PLATFORM_TIME_DST_ON;
+          } else if (dstFlag == 'W') {
+              timeStruct.dst = MBEDTLS_PLATFORM_TIME_DST_OFF;
+          } else {
+              ESP_LOGE("parseDsmrTimestamp", "unexpected last character");
+              return TIME_UNKNOWN; // Return an error value
+          }
       } else {
-        // Timestamp in ambiguous hour & format: YYMMDDhhmss (DSMR2/DSMR3)
+        // Handle ambiguous hour & format: YYMMDDhhmmss (DSMR2/DSMR3)
+        ESP_LOGE("parseDsmrTimestamp", "Ambiguous local time for: %s", truncatedStr);
+
         // Need to look at persistently stored timestamps to decide.
         // In very rare cases, we have to rely even on currentDeviceTime given in parameter
         int lastTimestamp = getLastTimestamp();
         if (lastTimestamp == -1 && currentDeviceTime != 0) {
-          // Edge case: no lastTimestamp stored yet in nvs; the only place where we use currentDeviceTime
-          std::tm* tmCurrentDeviceTimeUTC = std::gmtime(&currentDeviceTime);
-          if (tmCurrentDeviceTimeUTC->tm_hour == 0) {
-            // The ambiguous hour is the first occurrence of 2-3 am,
-            ldt.set_dst(boost::local_time::dst_status::daylight_time);
-            if (ldt.time_of_day().hours() == 2) {
-              int timestampInSeconds = ldt.time_of_day().hours() * 3600 + ldt.time_of_day().minutes() * 60 + ldt.time_of_day().seconds();
-              setLastTimestamp(timestampInSeconds);
+            // Edge case: no lastTimestamp stored yet in nvs; the only place where we use currentDeviceTime
+            std::tm* tmCurrentDeviceTimeUTC = std::gmtime(&currentDeviceTime);
+            if (tmCurrentDeviceTimeUTC->tm_hour == 0) {
+                // The ambiguous hour is the first occurrence of 2-3 am
+                timeStruct.dst = MBEDTLS_PLATFORM_TIME_DST_ON;
+                if (timeStruct.hour == 2) {
+                    int timestampInSeconds = timeStruct.hour * 3600 + timeStruct.min * 60 + timeStruct.sec;
+                    setLastTimestamp(timestampInSeconds);
+                }
+            } else {
+                timeStruct.dst = MBEDTLS_PLATFORM_TIME_DST_OFF;
             }
-          } else {
-            ldt.set_dst(boost::local_time::dst_status::standard_time);
-          }
         } else {
-          // Ambiguous hour, set isDstInEffect based on value of lastTimestamp
-          if (ldt.time_of_day().hours() == 2 && lastTimestamp == ldt.time_of_day().hours() * 3600) {
-            // The ambiguous hour is the second occurrence of 2-3 am, so no DST
-            ldt.set_dst(boost::local_time::dst_status::standard_time);
-          } else {
-            ldt.set_dst(boost::local_time::dst_status::daylight_time);
-            int timestampInSeconds = ldt.time_of_day().hours() * 3600 + ldt.time_of_day().minutes() * 60 + ldt.time_of_day().seconds();
-            setLastTimestamp(timestampInSeconds);
-          }
+            // Ambiguous hour, set timeStruct.dst based on the value of lastTimestamp
+            int timeInSeconds = timeStruct.tm_hour * 3600 + timeStruct.tm_min * 60 + timeStruct.tm_sec;
+            if (timeInSeconds < lastTimestamp) {
+                // The ambiguous hour is the second occurrence of 2-3 am, so no DST
+                timeStruct.dst = MBEDTLS_PLATFORM_TIME_DST_OFF;
+            } else {
+                timeStruct.dst = MBEDTLS_PLATFORM_TIME_DST_ON;
+                int timestampInSeconds = timeStruct.hour * 3600 + timeStruct.min * 60 + timeStruct.sec;
+                setLastTimestamp(timestampInSeconds);
+            }
         }
       }
-    }
-  } catch (const boost::bad_lexical_cast& e) {
+  } else if (timestampStr.length() == 13) {
+      // Check if the parsed DST status matches the 'X' character to ensure consistency
+      char dstFlag = timestampStr[12]; // 'X' character indicating DST status
+      if ((dstFlag == 'S' && timeStruct.dst == MBEDTLS_PLATFORM_TIME_DST_OFF) || (dstFlag == 'W' && timeStruct.dst == MBEDTLS_PLATFORM_TIME_DST_ON)) {
+          ESP_LOGW("parseDsmrTimestamp", "DST status mismatch between localtime_r and X character");
+          // Correct the DST status based on 'X' character
+      char dstFlag = timestampStr[12]; // 'X' character indicating DST status
+      if (dstFlag == 'S') {
+        timeStruct.dst = MBEDTLS_PLATFORM_TIME_DST_ON;
+      } else if (dstFlag  == 'W') {
+        timeStruct.dst = MBEDTLS_PLATFORM_TIME_DST_OFF;
+      } else {
+        // Handle unexpected last character
+      ESP_LOGE("parseDsmrTimestamp","unexpected last character");
+        return TIME_UNKNOWN; // Return an error value
+      }
+  }
+} catch (const std::exception& e) {
+  // Handle parsing or other exceptions if needed
+  ESP_LOGE("parseDsmrTimestamp", "exception occurred: %s", e.what());
+  return TIME_UNKNOWN; // Return an error value
+} 
+
     // Handle invalid timestamp format or parsing error
     ESP_LOGE("parseDsmrTimestamp"," invalid timestamp format or parsing error for: %s", truncatedStr.c_str());
     return TIME_UNKNOWN; // Return an error value
-  } catch (const boost::exception& e) {
     // Handle other exceptions if needed
     ESP_LOGE("parseDsmrTimestamp","other exceptions for: %s", truncatedStr.c_str());
     return TIME_UNKNOWN; // Return an error value
   }
 
-
-  if (timeInfo.tm_isdst == -1) {
-  }
 
   time_t unixTime = boost::posix_time::to_time_t(ldt);
   ESP_LOGD("parseDsmrTimestamp","unix time: %ld", unixTime);
