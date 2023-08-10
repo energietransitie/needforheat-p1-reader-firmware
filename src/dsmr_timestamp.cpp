@@ -9,7 +9,7 @@
 static int32_t lastTimestamp = TIME_UNKNOWN;       // Initialize to a default value
 static bool initializedLastTimeStamp = false;
 
-int32_t getLastTimestamp()
+int32_t getLastTimestamp(const std::string &nvs_timestamp_key)
 {
     if (!initializedLastTimeStamp) {
         // Get baudrate from NVS and store it in RAM
@@ -22,16 +22,16 @@ int32_t getLastTimestamp()
         } else {
             ESP_LOGD("NVS","Opened");
 
-            ESP_LOGD("NVS","Reading %s value from NVS ... ", NVS_KEY_LASTTIMESTAMP);
+            ESP_LOGD("NVS","Reading %s value from NVS ... ", nvs_timestamp_key.c_str());
 
-            err = nvs_get_i32(nvsStorage, NVS_KEY_LASTTIMESTAMP, &lastTimestamp);
+            err = nvs_get_i32(nvsStorage, nvs_timestamp_key.c_str(), &lastTimestamp);
             switch (err) {
                 case ESP_OK:
                     ESP_LOGD("NVS","Done\n");
-                    ESP_LOGD("NVS", "%s value read: %s\n", NVS_KEY_LASTTIMESTAMP, std::to_string(lastTimestamp).c_str());
+                    ESP_LOGD("NVS", "%s value read: %s\n", nvs_timestamp_key.c_str(), std::to_string(lastTimestamp).c_str());
                     break;
                 case ESP_ERR_NVS_NOT_FOUND:
-                    ESP_LOGD("NVS","%s value is not initialized yet!\n", NVS_KEY_LASTTIMESTAMP);
+                    ESP_LOGD("NVS","%s value is not initialized yet!\n", nvs_timestamp_key.c_str());
                     lastTimestamp = TIME_UNKNOWN;
                     break;
                 default :
@@ -48,10 +48,10 @@ int32_t getLastTimestamp()
     return lastTimestamp;
 }
 
-void setLastTimestamp(int32_t newTimestamp) 
+void setLastTimestamp(const std::string &nvs_timestamp_key, int32_t newTimestamp) 
 {
     // store newTimestamp in nvs if different from stored
-    int32_t timestamp_stored = getLastTimestamp();
+    int32_t timestamp_stored = getLastTimestamp(nvs_timestamp_key);
     ESP_LOGI("P1", "P1 baudrate stored: %d; new: %d", timestamp_stored, newTimestamp);
     if(newTimestamp != timestamp_stored)
     {
@@ -66,13 +66,13 @@ void setLastTimestamp(int32_t newTimestamp)
 
             if(newTimestamp == TIME_UNKNOWN)
             {
-                err = nvs_erase_key(nvsStorage, NVS_KEY_LASTTIMESTAMP);
-                ESP_LOGD("NVS","The value %ss is removed from nvs\n", NVS_KEY_LASTTIMESTAMP);
+                err = nvs_erase_key(nvsStorage, nvs_timestamp_key.c_str());
+                ESP_LOGD("NVS","The value %ss is removed from nvs\n", nvs_timestamp_key.c_str());
             }
             else
             {
-                err = nvs_set_i32(nvsStorage, NVS_KEY_LASTTIMESTAMP, newTimestamp);                 
-                ESP_LOGD("NVS","For key %s value % is stored in nvs\n", NVS_KEY_LASTTIMESTAMP, newTimestamp);
+                err = nvs_set_i32(nvsStorage, nvs_timestamp_key.c_str(), newTimestamp);                 
+                ESP_LOGD("NVS","For key %s value % is stored in nvs\n", nvs_timestamp_key.c_str(), newTimestamp);
             }
 
             // Commit written value.
@@ -90,14 +90,13 @@ void setLastTimestamp(int32_t newTimestamp)
     lastTimestamp = newTimestamp;
     // Set the flag to indicate baudrate has been initialized in RAM
     initializedLastTimeStamp = true;
-
 }
 
-time_t parseDsmrTimestamp(const std::string& timestampStr, time_t currentDeviceTime) {
+time_t parseDsmrTimestamp(const std::string &nvs_timestamp_key, const std::string& timestampStr, time_t currentDeviceTime) {
   const char* timeZone = "CET-1CEST,M3.5.0/2,M10.5.0/3"; // Europe/Amsterdam time zone
   time_t unixTime = TIME_UNKNOWN;
   // Parse input timestamp string
-  ESP_LOGD("parseDsmrTimestamp","dsmr timestamp: %s; current: %ld", timestampStr.c_str(), currentDeviceTime);
+  ESP_LOGD("parseDsmrTimestamp","dsmr timestamp: %s; current device Unix time: %ld", timestampStr.c_str(), currentDeviceTime);
 
   std::string truncatedStr = timestampStr.substr(0, 12);
 
@@ -108,8 +107,6 @@ time_t parseDsmrTimestamp(const std::string& timestampStr, time_t currentDeviceT
     // Handle invalid timestamp format or parsing error
     ESP_LOGE("parseDsmrTimestamp"," invalid timestamp format or parsing error for: %s", truncatedStr.c_str());
     return TIME_UNKNOWN; // Return an error value
-
-      return TIME_UNKNOWN; // Return an error value
   }
 
   // Convert the year to tm_year format (since tm_year represents years since 1900)
@@ -141,7 +138,7 @@ time_t parseDsmrTimestamp(const std::string& timestampStr, time_t currentDeviceT
 
       // Need to look at persistently stored timestamps to decide.
       // In very rare cases, we have to rely even on currentDeviceTime given in parameter
-      int lastTimestamp = getLastTimestamp();
+      int lastTimestamp = getLastTimestamp(nvs_timestamp_key);
       if (lastTimestamp == -1 && currentDeviceTime != 0) {
         // Edge case: no lastTimestamp stored yet in nvs; the only place where we use currentDeviceTime
         std::tm* tmCurrentDeviceTimeUTC = std::gmtime(&currentDeviceTime);
@@ -150,7 +147,7 @@ time_t parseDsmrTimestamp(const std::string& timestampStr, time_t currentDeviceT
             timeStruct.tm_isdst = 1;
             if (timeStruct.tm_hour == 2) {
                 int timestampInSeconds = timeStruct.tm_hour * 3600 + timeStruct.tm_min * 60 + timeStruct.tm_sec;
-                setLastTimestamp(timestampInSeconds);
+                setLastTimestamp(nvs_timestamp_key.c_str(), timestampInSeconds);
             }
         } else {
             timeStruct.tm_isdst = 0;
@@ -164,7 +161,7 @@ time_t parseDsmrTimestamp(const std::string& timestampStr, time_t currentDeviceT
         } else {
             timeStruct.tm_isdst = 1;
             int timestampInSeconds = timeStruct.tm_hour * 3600 + timeStruct.tm_min * 60 + timeStruct.tm_sec;
-            setLastTimestamp(timestampInSeconds);
+            setLastTimestamp(nvs_timestamp_key.c_str(), timestampInSeconds);
         }
       }
     }
@@ -173,6 +170,7 @@ time_t parseDsmrTimestamp(const std::string& timestampStr, time_t currentDeviceT
   // Convert the struct tm to a Unix timestamp (Unix time)
   unixTime = mktime(&timeStruct);
   // Return the Unix time
+  ESP_LOGD("parseDsmrTimestamp","converted Unix time: %ld", unixTime);
   return unixTime;
 }
 

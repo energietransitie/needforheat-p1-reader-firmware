@@ -96,6 +96,54 @@ unsigned int CRC16(unsigned int crc, unsigned char *buf, int len) {
     return crc;
 }
 
+int extractValue(const char *p1String, const char *pattern, void *valuePtr) {
+    // Calculate the length of the pattern
+    size_t patternLength = strlen(pattern);
+    // Create a shortened pattern based on the calculated length
+    char shortenedPattern[patternLength + 1];
+    size_t shortenedPatternLength = strcspn(pattern, "%");
+    snprintf(shortenedPattern, sizeof(shortenedPattern), "%.*s", (int)shortenedPatternLength, pattern);
+
+    char *pos = strstr(p1String, shortenedPattern);
+    if (pos == NULL || sscanf(pos, pattern, valuePtr) != 1) {
+        ESP_LOGE("pattern value not found", "pattern: %s, in p1String: %s", pattern, pos);
+        return -1; // Value not found or couldn't be parsed
+    }
+    return 1; // Success
+}
+
+int extract2Values(const char *p1String, const char *pattern, void *valuePtr1, void *valuePtr2) {
+    // Calculate the length of the pattern
+    size_t patternLength = strlen(pattern);
+    // Create a shortened pattern based on the calculated length
+    char shortenedPattern[patternLength + 1];
+    size_t shortenedPatternLength = strcspn(pattern, "%");
+    snprintf(shortenedPattern, sizeof(shortenedPattern), "%.*s", (int)shortenedPatternLength, pattern);
+
+    char *pos = strstr(p1String, shortenedPattern);
+    if (pos == NULL || sscanf(pos, pattern, valuePtr1, valuePtr2) != 2) {
+        ESP_LOGE("pattern values not found", "pattern: %s, in p1String: %s", pattern, pos);
+        return -1; // Values not found or couldn't be parsed
+    }
+    return 2; // Success
+}
+
+int extract3Values(const char *p1String, const char *pattern, void *valuePtr1, void *valuePtr2, void *valuePtr3) {
+        // Calculate the length of the pattern
+    size_t patternLength = strlen(pattern);
+    // Create a shortened pattern based on the calculated length
+    char shortenedPattern[patternLength + 1];
+    size_t shortenedPatternLength = strcspn(pattern, "%");
+    snprintf(shortenedPattern, sizeof(shortenedPattern), "%.*s", (int)shortenedPatternLength, pattern);
+
+    char *pos = strstr(p1String, shortenedPattern);
+    if (pos == NULL || sscanf(pos, pattern, valuePtr1, valuePtr2) != 3) {
+        ESP_LOGE("pattern values not found", "pattern: %s, in p1String: %s", pattern, pos);
+        return -1; // Values not found or couldn't be parsed
+    }
+    return 3; // Success
+}
+
 /**
  * @brief Convert data read from P1 port into the struct
  *
@@ -113,103 +161,107 @@ int p1StringToStruct(const char *p1String, P1Data *p1Struct) {
 
     //REVIEW: should packaging into struct be omitted and directly package into JSON format?ol
 
-    //DSMR version: OBIS reference 1-3:0.2.8
-    char *dsmrPos = strstr(p1String, "1-3:0.2.8");
-    if (dsmrPos != NULL) {
-        //Read the version number:
-        sscanf(dsmrPos, "1-3:0.2.8(%hhu", &(p1Struct->dsmrVersion)); //Read DSMR version as unsigned char
-    }
-    //else
-      //  return P1_ERROR_DSMR_NOT_FOUND; //DSMR version not found is not an error
+    unsigned int n;
 
-    //elecUsedT1 OBIS reference: 1-0:1.8.1
-    char *elecUsedT1Pos = strstr(p1String, "1-0:1.8.1");
-    if (elecUsedT1Pos != NULL) {
-        //read the ElecUsedT1, specification states fixed 3 decimal float:
-        sscanf(elecUsedT1Pos, "1-0:1.8.1(%lf", &(p1Struct->elecUsedT1));
+    //DSMR version: OBIS reference 1-3:0.2.8
+    if (getBaudrate__b_s_1() == 9600) {
+        ESP_LOGI("baudrate", "9600");
+
+        // For DSMR 2 and DSMR 3 smart meters, the DSMR version is not specified in the telegram, but it can be derived from start of telegram: 
+        // DSMR2 starts with '/XXX3', according to
+        // - http://77.161.176.191/domoticx/handleidingen/p1-poort/P1%20Companion%20Standard%20DSMR%20v2.1%20%282008-02-04%29%20EnergieNed.7z, p.5
+        // - http://77.161.176.191/domoticx/handleidingen/p1-poort/P1%20Companion%20Standard%20DSMR%20v2.2%20%282008-04-18%29%20Enbin.7z, p.10
+        // - http://77.161.176.191/domoticx/handleidingen/p1-poort/P1%20Companion%20Standard%20DSMR%20v2.31%20%282009-01-08%29%20Netbeheer%20Nederland.7z, p.10
+        // DSMR3 starts with '/XXX5', according to
+        // - http://77.161.176.191/domoticx/handleidingen/p1-poort/P1%20Companion%20Standard%20DSMR%20v3.0%20%282010-03-24%29%20Netbeheer%20Nederland.7z, p.10
+        // where 'XXX' are three arbitrary characters  
+        if (p1String[4] == '3') {
+            p1Struct->dsmrVersion = 2.2; // we have no way of knowing whether it's 2.1 or 2.2; we assume 2.2
+        } else if (p1String[4] == '5') {
+            p1Struct->dsmrVersion = 3.0;
+        } else {
+            ESP_LOGE("XXXZ dsmr version detection", "p1String: %s", p1String);
+            ESP_LOGE("XXXZ dsmr version detection", "p1String[4]: %c", p1String[4]);
+            ESP_LOGE("XXXZ dsmr version detection", "p1String[4] neither '3' nor '5'");
+            return P1_ERROR_DSMR_NOT_FOUND;
+        }
+    } else {
+        ESP_LOGI("baudrate", "115200");
+        // For smart meters with version DSMR 4 and up, the DSMR version should be specified in the telegram 
+        unsigned int versionInt;
+        if (extractValue(p1String, "1-3:0.2.8(%2u)", &versionInt) != 1) {
+            p1Struct->dsmrVersion = P1_UNKNOWN;
+            ESP_LOGE("OBIS 1-3:0.2.8(dd) dsmr version detection", "p1String: %s", p1String);
+            ESP_LOGE("OBIS 1-3:0.2.8(dd) dsmr version detection", "p1String[4]: %c", p1String[4]);
+            return P1_ERROR_DSMR_NOT_FOUND;
+        } else {
+            p1Struct->dsmrVersion = (float)versionInt / 10.0;
+        }
     }
-    else
-        return P1_ERROR_ELECUSEDT1_NOT_FOUND;
+    setIsAtLeastDSMR5(p1Struct->dsmrVersion);     
+
+    //elecUsedT1 OBIS reference: 1-0:1.8.1; specification states fixed 3 decimal float:
+    if (extractValue(p1String, "1-0:1.8.1(%lf*kWh)", &(p1Struct->elecUsedT1)) != 1) {
+        return P1_ERROR_ELECUSEDT1_NOT_FOUND; // elecUsedT1 value not found
+    }
 
     //elecUsedT2 OBIS reference: 1-0:1.8.2
-    char *elecUsedT2Pos = strstr(p1String, "1-0:1.8.2");
-    if (elecUsedT2Pos != NULL) {
-        sscanf(elecUsedT2Pos, "1-0:1.8.2(%lf", &p1Struct->elecUsedT2);
-    }
-    else
+    if (extractValue(p1String, "1-0:1.8.2(%lf*kWh)", &p1Struct->elecUsedT2) != 1) {
         return P1_ERROR_ELECUSEDT2_NOT_FOUND;
+    }
 
     //elecReturnT1 OBIS reference: 1-0:2.8.1
-    char *elecReturnT1Pos = strstr(p1String, "1-0:2.8.1");
-    if (elecReturnT1Pos != NULL) {
-        sscanf(elecReturnT1Pos, "1-0:2.8.1(%lf", &p1Struct->elecDeliveredT1);
+    if (extractValue(p1String, "1-0:2.8.1(%lf", &p1Struct->elecReturnedT1) != 1) {
+        return P1_ERROR_ELECRETURNT1_NOT_FOUND; // Failed to read elecDeliveredT1 value
     }
-    else
-        return P1_ERROR_ELECRETURNT2_NOT_FOUND;
-
 
     //elecReturnT2 OBIS reference 1-0:2.8.2
-    char *elecReturnT2Pos = strstr(p1String, "1-0:2.8.2");
-    if (elecReturnT2Pos != NULL) {
-        sscanf(elecReturnT2Pos, "1-0:2.8.2(%lf", &p1Struct->elecDeliveredT2);
-    }
-    else
-        return P1_ERROR_ELECRETURNT2_NOT_FOUND;
+    if (extractValue(p1String, "1-0:2.8.2(%lf", &p1Struct->elecReturnedT2) != 1) {
+        return P1_ERROR_ELECRETURNT2_NOT_FOUND; // Failed to read elecDeliveredT2 value
+    }    
 
-
-    if(getBaudrate__b_s_1() == 9600)//dsmr2/3 smart meters
-    {
-        ESP_LOGI("Baudrate", "dsmr 2/3 settings");
-        //elec Timestamp OBIS reference 
-        char *elecTimePos = strstr(p1String, "0-0:24.3.0");
-        if (elecTimePos != NULL) {
-            sscanf(elecTimePos, "0-0:24.3.0(%12s", p1Struct->timeElecMeasurement);
-            p1Struct->timeElecMeasurement[12] = 0; //add a zero terminator at the end to read as string
+    if (p1Struct->dsmrVersion < 3.0) {
+        //DSMR2 smart meters
+        ESP_LOGI("DSMR", "version 2");
+        if (extract3Values(p1String,"7-0:23.%u.0(%12s)(%lf)", &n, &p1Struct->timeGasMeasurement, &p1Struct->gasUsage) !=3) {;
+            return P1_ERROR_GAS_READING_NOT_FOUND;
         }
-    }
-    else // DSMR4 or newer smart meters
-    {
-        //elec Timestamp OBIS reference 
-        ESP_LOGI("Baudrate", "dsmr 4/5 settings");
-        char *elecTimePos = strstr(p1String, "0-0:1.0.0");
-        if (elecTimePos != NULL) {
-            sscanf(elecTimePos, "0-0:1.0.0(%13s", p1Struct->timeElecMeasurement);
-            p1Struct->timeElecMeasurement[13] = 0; //add a zero terminator at the end to read as string
-        }
-    }
-
-    if(getBaudrate__b_s_1() == 9600) // DSMR2/3 smart meters
-    {
-        
-        ESP_LOGI("Baudrate", "dsmr 2/3 settings");
-        //DSMR 2.2 had different layout of gas timestap and gas reading
-        //Gas reading OBIS: 0-n:24.3.0 //n can vary depending on which channel it is installed
-        char *gasTimePos = strstr(p1String, "0-1:24.3.0");
-        if (gasTimePos != NULL) {
-            sscanf(gasTimePos, "0-1:24.3.0(%12s)", p1Struct->timeGasMeasurement);
+        else {
             p1Struct->timeGasMeasurement[12] = 0; //Add a null terminator to print it as a string
         }
-        else
+    } else if (p1Struct->dsmrVersion < 4.0) {
+        //DSMR3 smart meters
+        ESP_LOGI("DSMR", "version 3");
+        //Gas reading OBIS: 0-n:24.3.0 //n can vary depending on which channel it is installed
+        if (extractValue(p1String, ":24.3.0(%12s)", &p1Struct->timeGasMeasurement) !=1) {
             return P1_ERROR_GAS_READING_NOT_FOUND;
-        char *gasPos = strstr(p1String, "m3)");
-        if (gasTimePos != NULL) {
-            sscanf(gasPos, "m3)\n(%lf)", &p1Struct->gasUsage);
+        } else {
+            p1Struct->timeGasMeasurement[12] = '\0'; //add a zero terminator at the end to read as string
         }
-        else
+        if (extract2Values(p1String, ":24.2.1)(m3)\n(%lf)", &n, &p1Struct->gasUsage) != 2) {
             return P1_ERROR_GAS_READING_NOT_FOUND;
-    }
-    else // DSMR4 or newer smart meters
-    {
-        ESP_LOGI("Baudrate", "dsmr 4/5 settings");
+        }
+    } else {
+        // DSMR4 or newer smart meters
+        ESP_LOGI("DSMR", "version 4 or newer");
+
+        //elec Timestamp OBIS reference 
+        if (extractValue(p1String, "0-0:1.0.0(%13s)", &p1Struct->timeElecMeasurement) != 1) {
+            return P1_ERROR_ELEC_TIMESTAMP_NOT_FOUND;
+        }
+        else {
+            p1Struct->timeElecMeasurement[13] = '\0'; //add a zero terminator at the end to read as string
+        }
+
         //Gas reading OBIS: 0-n:24.2.1 //n can vary depending on which channel it is installed
-        char *gasPos = strstr(p1String, "0-1:24.2.1");
-        if (gasPos != NULL) {
-            sscanf(gasPos, "0-1:24.2.1(%13s)(%lf)", p1Struct->timeGasMeasurement, &p1Struct->gasUsage);
+        if (extract2Values(p1String,":24.2.1(%13s)(%lf)", &p1Struct->timeGasMeasurement, &p1Struct->gasUsage) != 2) {;
+            return P1_ERROR_GAS_READING_NOT_FOUND;
+        }
+        else {
             p1Struct->timeGasMeasurement[13] = 0; //Add a null terminator to print it as a string
         }
-        else
-            return P1_ERROR_GAS_READING_NOT_FOUND;
     }
+
     //If none of the statements reached an "else" all measurements were read correctly!
     return P1_READ_OK;
 }
@@ -222,12 +274,18 @@ int p1StringToStruct(const char *p1String, P1Data *p1Struct) {
  *
  */
 void printP1Data(P1Data *data) {
-    ESP_LOGI("P1 Print", "DSMR VERSION %i ", data->dsmrVersion);
+    ESP_LOGI("P1 Print", "DSMR VERSION: %.1f", data->dsmrVersion);
+    if(getBaudrate__b_s_1() == 9600) {
+        //dsmr2/3 smart meters
+        ESP_LOGI("P1 Print", "DSMR2/3: no ELEC TIMESTAMP");
+    } else {
+        // DSMR4 or newer smart meters
+        ESP_LOGI("P1 Print", "ELEC TIMESTAMP: %s", data->timeElecMeasurement);
+    }
     ESP_LOGI("P1 Print", "e_use_lo_cum__kWh: %4.3f ", data->elecUsedT1);
     ESP_LOGI("P1 Print", "e_use_hi_cum__kWh: %4.3f ", data->elecUsedT2);
-    ESP_LOGI("P1 Print", "e_ret_lo_cum__kWh: %4.3f ", data->elecDeliveredT1);
-    ESP_LOGI("P1 Print", "e_ret_hi_cum__kWh: %4.3f ", data->elecDeliveredT2);
-    ESP_LOGI("P1 Print", "ELEC TIMESTAMP: %s", data->timeElecMeasurement);
+    ESP_LOGI("P1 Print", "e_ret_lo_cum__kWh: %4.3f ", data->elecReturnedT1);
+    ESP_LOGI("P1 Print", "e_ret_hi_cum__kWh: %4.3f ", data->elecReturnedT2);
     ESP_LOGI("P1 Print", "g_use_cum__m3:  %7.3f ", data->gasUsage);
     ESP_LOGI("P1 Print", "GAS TIMESTAMP: %s ", data->timeGasMeasurement);
 }
@@ -360,24 +418,22 @@ P1Data p1Read()
                 //Check if CRC match:
                 if (calculatedCRC == receivedCRC) {
                     //log received CRC and calculated CRC for debugging
-                    ESP_LOGD("P1", "Received matching CRC: (%4X == %4X)", receivedCRC, calculatedCRC);
+                    if (getBaudrate__b_s_1() != 9600)
+                    {
+                        ESP_LOGD("P1", "Received matching CRC: (%4X == %4X)", receivedCRC, calculatedCRC);
+                    }
                     ESP_LOGI("P1", "Parsing message into struct:");
-                
                     //extract the necessary data from the P1 payload into the struct and check for errors while decoding
                     int result = p1StringToStruct((const char *)p1Message, &p1Measurements);
 
                     if (result == P1_READ_OK) {
                         //Print the data from the struct to monitor for debugging:
-                        printP1Data(&p1Measurements); 
-
-                        
-                        setIsAtLeastDSMR5(p1Measurements.dsmrVersion);                  
+                        printP1Data(&p1Measurements);              
                     }
                     else {
                         //If a measurement could not be read, print to serial terminal which one was (the first that was) missing
                         printP1Error(result);
                     }
-                    //Start decoding the P1 message:
                 }
                 //if CRC does not match:
                 else {
@@ -423,7 +479,7 @@ void setIsAtLeastDSMR5(int8_t dsmrVersion)
     {
         isAtLeastDSMR5 = P1_UNKNOWN;
     }
-    else if(dsmrVersion >= 50)
+    else if(dsmrVersion >= 5.0)
     {
         isAtLeastDSMR5 = 1;
     } else 

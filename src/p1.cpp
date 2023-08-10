@@ -38,32 +38,41 @@ void readP1Task(void *taskInfo) {
 	 * result.timeGasMeasurement = "632525252525S";
 	*/
 
-	if (result.dsmrVersion != P1_UNKNOWN)
-	{
+	if (result.dsmrVersion == P1_UNKNOWN) {
+		ESP_LOGI("P1", "incorrect p1 message");
+	} else {
 		std::string eTimestampStr(result.timeElecMeasurement);
-		std::string gTimestampStr(result.timeElecMeasurement);
+		std::string gTimestampStr(result.timeGasMeasurement);
 
-		// if(parseDsmrTimestamp(result.timeGasMeasurement, deviceTime()) != TIME_UNKNOWN)//if wrong gas values dont upload
-		if(true)//if wrong gas values dont upload
-		{
-			Measurements::Measurement eMeterReadingSupplyLow("e_use_lo_cum__kWh", result.elecUsedT1, parseDsmrTimestamp(eTimestampStr, deviceTime()));
-			secureUploadQueue.AddMeasurement(eMeterReadingSupplyLow);
-
-			Measurements::Measurement eMeterReadingSupplyHigh("e_use_hi_cum__kWh", result.elecUsedT2, parseDsmrTimestamp(eTimestampStr, deviceTime()));
-			secureUploadQueue.AddMeasurement(eMeterReadingSupplyHigh);
-
-			Measurements::Measurement eMeterReadingReturnLow("e_ret_lo_cum__kWh", result.elecDeliveredT1, parseDsmrTimestamp(eTimestampStr, deviceTime()));
-			secureUploadQueue.AddMeasurement(eMeterReadingReturnLow);
-
-			Measurements::Measurement eMeterReadingReturnHigh("e_ret_hi_cum__kWh", result.elecDeliveredT2, parseDsmrTimestamp(eTimestampStr, deviceTime()));
-			secureUploadQueue.AddMeasurement(eMeterReadingReturnHigh);
-
-			Measurements::Measurement gMeterReadingSupply("g_use_cum__m3", result.gasUsage, parseDsmrTimestamp(gTimestampStr, deviceTime()));
-			secureUploadQueue.AddMeasurement(gMeterReadingSupply);
+		if  (result.dsmrVersion < 4.0) {
+			// for smart meters with version DSMR 2 and 3, no timestamps are available for the electricity meter readings; 
+			// so, make the Measurement use the device timetamp by NOT specifying a timestamp
+			Measurements::Measurement e_use_lo_cum__kWh("e_use_lo_cum__kWh", result.elecUsedT1);
+			Measurements::Measurement e_use_hi_cum__kWh("e_use_hi_cum__kWh", result.elecUsedT2);
+			Measurements::Measurement e_ret_lo_cum__kWh("e_ret_lo_cum__kWh", result.elecReturnedT1);
+			Measurements::Measurement e_ret_hi_cum__kWh("e_ret_hi_cum__kWh", result.elecReturnedT2);
+			secureUploadQueue.AddMeasurement(e_use_lo_cum__kWh);
+			secureUploadQueue.AddMeasurement(e_use_hi_cum__kWh);
+			secureUploadQueue.AddMeasurement(e_ret_lo_cum__kWh);
+			secureUploadQueue.AddMeasurement(e_ret_hi_cum__kWh);
+		} else {
+			// for smart meters with version DSMR 4 and up, up timestamps are availeble for the electricity meter readings;
+			// so, make the Measurement use the smart meter timetamp by specifying its parsed timestamp
+			time_t eTimestamp = parseDsmrTimestamp(NVS_KEY_LAST_E_TIMESTAMP, eTimestampStr, deviceTime());
+			Measurements::Measurement e_use_lo_cum__kWh("e_use_lo_cum__kWh", result.elecUsedT1, eTimestamp);
+			Measurements::Measurement e_use_hi_cum__kWh("e_use_hi_cum__kWh", result.elecUsedT2, eTimestamp);
+			Measurements::Measurement e_ret_lo_cum__kWh("e_ret_lo_cum__kWh", result.elecReturnedT1, eTimestamp);
+			Measurements::Measurement e_ret_hi_cum__kWh("e_ret_hi_cum__kWh", result.elecReturnedT2, eTimestamp);
+			secureUploadQueue.AddMeasurement(e_use_lo_cum__kWh);
+			secureUploadQueue.AddMeasurement(e_use_hi_cum__kWh);
+			secureUploadQueue.AddMeasurement(e_ret_lo_cum__kWh);
+			secureUploadQueue.AddMeasurement(e_ret_hi_cum__kWh);
 		}
-		else
-		{
-			ESP_LOGI("P1", "incorrect p1 message");
+		time_t gTimestamp = parseDsmrTimestamp(NVS_KEY_LAST_G_TIMESTAMP, gTimestampStr, deviceTime());
+		if(gTimestamp != TIME_UNKNOWN) {
+			//only upload gas meter values if the timestamp is proper (e.g., not when result.timeGasMeasurement == "632525252525S")
+			Measurements::Measurement g_use_cum__m3("g_use_cum__m3", result.gasUsage, gTimestamp);
+			secureUploadQueue.AddMeasurement(g_use_cum__m3);
 		}
 	}
 }

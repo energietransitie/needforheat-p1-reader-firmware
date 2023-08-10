@@ -47,8 +47,10 @@ extern "C"
 #define P1_MESSAGE_SIZE 2048
 #define P1PORT_UART_NUM UART_NUM_2
 
+//TODO: remove gateway functionality
 
 #define JSON_BUFFER_SIZE 2048
+
 
 //WIFI Scan
 #define DEFAULT_SCAN_LIST_SIZE 25   //Amount of APs to scan
@@ -100,36 +102,22 @@ typedef struct CO2_Message {
 
 //Struct for holding the P1 Data:
 typedef struct P1Data {
-    int8_t dsmrVersion;          // DSMR version without decimal point
-    double elecUsedT1;           // Electrical Energy used Tariff 1 in kWh
-    double elecUsedT2;           // Electrical Energy used Tariff 2 in kWh
-    double elecDeliveredT1;      // Electrical Delivered used Tariff 1 in kWh
-    double elecDeliveredT2;      // Electrical Delivered used Tariff 2 in kWh
-    char timeElecMeasurement[14]; //Timestamp for most recent Electricity measurement
-    double gasUsage;             // Gasverbruik in dm3
-    char timeGasMeasurement[14]; // Timestamp for most recent gas measurement YY:MM:DD:HH:MM:SS And S/W for summer or winter time
+    float dsmrVersion;            // DSMR version (x.y, where x is the major version and y is the first minor verrion after the decimal point)
+    double elecUsedT1;            // Electrical Energy used against Tariff 1 [kWh]
+    double elecUsedT2;            // Electrical Energy used against Tariff 2 [kWh]
+    double elecReturnedT1;        // Electrical Returned against Tariff 1 [kWh]
+    double elecReturnedT2;        // Electrical Returned against Tariff 2 [kWh]
+    char timeElecMeasurement[14]; // DSMR timestamp string for the electricity meter readings [14 positions needed for YYMDDhhmssX string and '\0' terminator]
+    double gasUsage;              // Gas meter reading [m3]
+    char timeGasMeasurement[14];  // DSMR timestamp string for gas meter reading [14 positions needed for YYMDDhhmssX or YYMDDhhmss string and '\0' terminator]
 } P1Data;
 
 
-
-//For getting channel list and amount of channels:
-typedef struct channelListstruct {
-    uint8_t amount;
-    uint8_t channels[DEFAULT_SCAN_LIST_SIZE];
-}channelList;
-
-
-
-
-
 /** ====== GLOBAL VARIABLES ============== */
-// uint16_t wifiQueue = 0;
 
 /**
  *  ========== FUNCTIONS ================
  */
-
- //Init
 
 void initP1UART();
 void setP1UARTConfigDSMR4or5();
