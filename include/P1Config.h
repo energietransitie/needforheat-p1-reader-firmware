@@ -103,13 +103,13 @@ typedef struct CO2_Message {
 //Struct for holding the P1 Data:
 typedef struct P1Data {
     float dsmrVersion;            // DSMR version (x.y, where x is the major version and y is the first minor verrion after the decimal point)
-    double elecUsedT1;            // Electrical Energy used against Tariff 1 [kWh]
-    double elecUsedT2;            // Electrical Energy used against Tariff 2 [kWh]
-    double elecReturnedT1;        // Electrical Returned against Tariff 1 [kWh]
-    double elecReturnedT2;        // Electrical Returned against Tariff 2 [kWh]
-    char timeElecMeasurement[14]; // DSMR timestamp string for the electricity meter readings [14 positions needed for YYMDDhhmssX string and '\0' terminator]
-    double gasUsage;              // Gas meter reading [m3]
-    char timeGasMeasurement[14];  // DSMR timestamp string for gas meter reading [14 positions needed for YYMDDhhmssX or YYMDDhhmss string and '\0' terminator]
+    double e_use_lo_cum__kWh;            // Electrical Energy used against Tariff 1 [kWh]
+    double e_use_hi_cum__kWh;            // Electrical Energy used against Tariff 2 [kWh]
+    double e_ret_lo_cum__kWh;        // Electrical Returned against Tariff 1 [kWh]
+    double e_ret_hi_cum__kWh;        // Electrical Returned against Tariff 2 [kWh]
+    char dsmrTimestamp_e[14]; // DSMR timestamp string for the electricity meter readings [14 positions needed for YYMDDhhmssX string and '\0' terminator]
+    double g_use_cum__m3;              // Gas meter reading [m3]
+    char dsmrTimestamp_g[14];  // DSMR timestamp string for gas meter reading [14 positions needed for YYMDDhhmssX or YYMDDhhmss string and '\0' terminator]
 } P1Data;
 
 

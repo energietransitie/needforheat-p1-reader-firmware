@@ -201,44 +201,44 @@ int p1StringToStruct(const char *p1String, P1Data *p1Struct) {
     setIsAtLeastDSMR5(p1Struct->dsmrVersion);     
 
     //elecUsedT1 OBIS reference: 1-0:1.8.1; specification states fixed 3 decimal float:
-    if (extractValue(p1String, "1-0:1.8.1(%lf*kWh)", &(p1Struct->elecUsedT1)) != 1) {
+    if (extractValue(p1String, "1-0:1.8.1(%lf*kWh)", &(p1Struct->e_use_lo_cum__kWh)) != 1) {
         return P1_ERROR_ELECUSEDT1_NOT_FOUND; // elecUsedT1 value not found
     }
 
     //elecUsedT2 OBIS reference: 1-0:1.8.2
-    if (extractValue(p1String, "1-0:1.8.2(%lf*kWh)", &p1Struct->elecUsedT2) != 1) {
+    if (extractValue(p1String, "1-0:1.8.2(%lf*kWh)", &p1Struct->e_use_hi_cum__kWh) != 1) {
         return P1_ERROR_ELECUSEDT2_NOT_FOUND;
     }
 
     //elecReturnT1 OBIS reference: 1-0:2.8.1
-    if (extractValue(p1String, "1-0:2.8.1(%lf", &p1Struct->elecReturnedT1) != 1) {
+    if (extractValue(p1String, "1-0:2.8.1(%lf", &p1Struct->e_ret_lo_cum__kWh) != 1) {
         return P1_ERROR_ELECRETURNT1_NOT_FOUND; // Failed to read elecDeliveredT1 value
     }
 
     //elecReturnT2 OBIS reference 1-0:2.8.2
-    if (extractValue(p1String, "1-0:2.8.2(%lf", &p1Struct->elecReturnedT2) != 1) {
+    if (extractValue(p1String, "1-0:2.8.2(%lf", &p1Struct->e_ret_hi_cum__kWh) != 1) {
         return P1_ERROR_ELECRETURNT2_NOT_FOUND; // Failed to read elecDeliveredT2 value
     }    
 
     if (p1Struct->dsmrVersion < 3.0) {
         //DSMR2 smart meters
         ESP_LOGI("DSMR", "version 2");
-        if (extract3Values(p1String,"7-0:23.%u.0(%12s)(%lf)", &n, &p1Struct->timeGasMeasurement, &p1Struct->gasUsage) !=3) {;
+        if (extract3Values(p1String,"7-0:23.%u.0(%12s)(%lf)", &n, &p1Struct->dsmrTimestamp_g, &p1Struct->g_use_cum__m3) !=3) {;
             return P1_ERROR_GAS_READING_NOT_FOUND;
         }
         else {
-            p1Struct->timeGasMeasurement[12] = 0; //Add a null terminator to print it as a string
+            p1Struct->dsmrTimestamp_g[12] = 0; //Add a null terminator to print it as a string
         }
     } else if (p1Struct->dsmrVersion < 4.0) {
         //DSMR3 smart meters
         ESP_LOGI("DSMR", "version 3");
         //Gas reading OBIS: 0-n:24.3.0 //n can vary depending on which channel it is installed
-        if (extractValue(p1String, ":24.3.0(%12s)", &p1Struct->timeGasMeasurement) !=1) {
+        if (extractValue(p1String, ":24.3.0(%12s)", &p1Struct->dsmrTimestamp_g) !=1) {
             return P1_ERROR_GAS_READING_NOT_FOUND;
         } else {
-            p1Struct->timeGasMeasurement[12] = '\0'; //add a zero terminator at the end to read as string
+            p1Struct->dsmrTimestamp_g[12] = '\0'; //add a zero terminator at the end to read as string
         }
-        if (extract2Values(p1String, ":24.2.1)(m3)\n(%lf)", &n, &p1Struct->gasUsage) != 2) {
+        if (extract2Values(p1String, ":24.2.1)(m3)\n(%lf)", &n, &p1Struct->g_use_cum__m3) != 2) {
             return P1_ERROR_GAS_READING_NOT_FOUND;
         }
     } else {
@@ -246,19 +246,19 @@ int p1StringToStruct(const char *p1String, P1Data *p1Struct) {
         ESP_LOGI("DSMR", "version 4 or newer");
 
         //elec Timestamp OBIS reference 
-        if (extractValue(p1String, "0-0:1.0.0(%13s)", &p1Struct->timeElecMeasurement) != 1) {
+        if (extractValue(p1String, "0-0:1.0.0(%13s)", &p1Struct->dsmrTimestamp_e) != 1) {
             return P1_ERROR_ELEC_TIMESTAMP_NOT_FOUND;
         }
         else {
-            p1Struct->timeElecMeasurement[13] = '\0'; //add a zero terminator at the end to read as string
+            p1Struct->dsmrTimestamp_e[13] = '\0'; //add a zero terminator at the end to read as string
         }
 
         //Gas reading OBIS: 0-n:24.2.1 //n can vary depending on which channel it is installed
-        if (extract2Values(p1String,":24.2.1(%13s)(%lf)", &p1Struct->timeGasMeasurement, &p1Struct->gasUsage) != 2) {;
+        if (extract2Values(p1String,":24.2.1(%13s)(%lf)", &p1Struct->dsmrTimestamp_g, &p1Struct->g_use_cum__m3) != 2) {;
             return P1_ERROR_GAS_READING_NOT_FOUND;
         }
         else {
-            p1Struct->timeGasMeasurement[13] = 0; //Add a null terminator to print it as a string
+            p1Struct->dsmrTimestamp_g[13] = 0; //Add a null terminator to print it as a string
         }
     }
 
@@ -273,21 +273,21 @@ int p1StringToStruct(const char *p1String, P1Data *p1Struct) {
  * @param data pointer to P1Data type struct
  *
  */
-void printP1Data(P1Data *data) {
-    ESP_LOGI("P1 Print", "DSMR VERSION: %.1f", data->dsmrVersion);
+void printP1Data(P1Data *p1Struct) {
+    ESP_LOGI("P1 Print", "DSMR VERSION: %.1f", p1Struct->dsmrVersion);
     if(getBaudrate__b_s_1() == 9600) {
         //dsmr2/3 smart meters
         ESP_LOGI("P1 Print", "DSMR2/3: no ELEC TIMESTAMP");
     } else {
         // DSMR4 or newer smart meters
-        ESP_LOGI("P1 Print", "ELEC TIMESTAMP: %s", data->timeElecMeasurement);
+        ESP_LOGI("P1 Print", "ELEC TIMESTAMP: %s", p1Struct->dsmrTimestamp_e);
     }
-    ESP_LOGI("P1 Print", "e_use_lo_cum__kWh: %4.3f ", data->elecUsedT1);
-    ESP_LOGI("P1 Print", "e_use_hi_cum__kWh: %4.3f ", data->elecUsedT2);
-    ESP_LOGI("P1 Print", "e_ret_lo_cum__kWh: %4.3f ", data->elecReturnedT1);
-    ESP_LOGI("P1 Print", "e_ret_hi_cum__kWh: %4.3f ", data->elecReturnedT2);
-    ESP_LOGI("P1 Print", "g_use_cum__m3:  %7.3f ", data->gasUsage);
-    ESP_LOGI("P1 Print", "GAS TIMESTAMP: %s ", data->timeGasMeasurement);
+    ESP_LOGI("P1 Print", "e_use_lo_cum__kWh: %4.3f ", p1Struct->e_use_lo_cum__kWh);
+    ESP_LOGI("P1 Print", "e_use_hi_cum__kWh: %4.3f ", p1Struct->e_use_hi_cum__kWh);
+    ESP_LOGI("P1 Print", "e_ret_lo_cum__kWh: %4.3f ", p1Struct->e_ret_lo_cum__kWh);
+    ESP_LOGI("P1 Print", "e_ret_hi_cum__kWh: %4.3f ", p1Struct->e_ret_hi_cum__kWh);
+    ESP_LOGI("P1 Print", "g_use_cum__m3:  %7.3f ", p1Struct->g_use_cum__m3);
+    ESP_LOGI("P1 Print", "GAS TIMESTAMP: %s ", p1Struct->dsmrTimestamp_g);
 }
 
 /**
