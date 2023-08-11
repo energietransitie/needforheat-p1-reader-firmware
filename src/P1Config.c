@@ -97,13 +97,16 @@ unsigned int CRC16(unsigned int crc, unsigned char *buf, int len) {
 }
 
 int extractValue(const char *p1String, const char *pattern, void *valuePtr) {
-    // Calculate the length of the pattern
-    size_t patternLength = strlen(pattern);
-    // Create a shortened pattern based on the calculated length
-    char shortenedPattern[patternLength + 1];
-    size_t shortenedPatternLength = strcspn(pattern, "%");
-    snprintf(shortenedPattern, sizeof(shortenedPattern), "%.*s", (int)shortenedPatternLength, pattern);
+    // Find the first occurrence of '%' character in the pattern
+    char *firstPercent = strchr(pattern, '%');
+    
+    // Calculate the length until the first '%' character
+    size_t shortenedPatternLength = firstPercent ? (size_t)(firstPercent - pattern) : strlen(pattern);
 
+    // Create a shortened pattern based on the calculated length
+    char shortenedPattern[shortenedPatternLength + 1];
+    snprintf(shortenedPattern, sizeof(shortenedPattern), "%.*s", (int)shortenedPatternLength, pattern);
+    
     char *pos = strstr(p1String, shortenedPattern);
     if (pos == NULL || sscanf(pos, pattern, valuePtr) != 1) {
         ESP_LOGE("pattern value not found", "pattern: %s, in p1String: %s", pattern, pos);
@@ -113,11 +116,14 @@ int extractValue(const char *p1String, const char *pattern, void *valuePtr) {
 }
 
 int extract2Values(const char *p1String, const char *pattern, void *valuePtr1, void *valuePtr2) {
-    // Calculate the length of the pattern
-    size_t patternLength = strlen(pattern);
+    // Find the first occurrence of '%' character in the pattern
+    char *firstPercent = strchr(pattern, '%');
+    
+    // Calculate the length until the first '%' character
+    size_t shortenedPatternLength = firstPercent ? (size_t)(firstPercent - pattern) : strlen(pattern);
+
     // Create a shortened pattern based on the calculated length
-    char shortenedPattern[patternLength + 1];
-    size_t shortenedPatternLength = strcspn(pattern, "%");
+    char shortenedPattern[shortenedPatternLength + 1];
     snprintf(shortenedPattern, sizeof(shortenedPattern), "%.*s", (int)shortenedPatternLength, pattern);
 
     char *pos = strstr(p1String, shortenedPattern);
@@ -129,11 +135,14 @@ int extract2Values(const char *p1String, const char *pattern, void *valuePtr1, v
 }
 
 int extract3Values(const char *p1String, const char *pattern, void *valuePtr1, void *valuePtr2, void *valuePtr3) {
-        // Calculate the length of the pattern
-    size_t patternLength = strlen(pattern);
+    // Find the first occurrence of '%' character in the pattern
+    char *firstPercent = strchr(pattern, '%');
+    
+    // Calculate the length until the first '%' character
+    size_t shortenedPatternLength = firstPercent ? (size_t)(firstPercent - pattern) : strlen(pattern);
+
     // Create a shortened pattern based on the calculated length
-    char shortenedPattern[patternLength + 1];
-    size_t shortenedPatternLength = strcspn(pattern, "%");
+    char shortenedPattern[shortenedPatternLength + 1];
     snprintf(shortenedPattern, sizeof(shortenedPattern), "%.*s", (int)shortenedPatternLength, pattern);
 
     char *pos = strstr(p1String, shortenedPattern);
@@ -238,7 +247,22 @@ int p1StringToStruct(const char *p1String, P1Data *p1Struct) {
         } else {
             p1Struct->dsmrTimestamp_g[12] = '\0'; //add a zero terminator at the end to read as string
         }
-        if (extract2Values(p1String, ":24.2.1)(m3)\n(%lf)", &n, &p1Struct->g_use_cum__m3) != 2) {
+
+        char *pos_g_use_cum__m3 = strstr(p1String, ":24.2.1)(m3)");
+        if (pos_g_use_cum__m3 != NULL) {
+            // Move past ":24.2.1)(m3)"
+            pos_g_use_cum__m3 += strlen(":24.2.1)(m3)");
+            
+            // Skip any following CR LF characters
+            while (*pos_g_use_cum__m3 == '\r' || *pos_g_use_cum__m3 == '\n') {
+                pos_g_use_cum__m3++;
+            }
+            
+            if (extractValue(pos_g_use_cum__m3, "(%lf)", &p1Struct->g_use_cum__m3) != 1) {
+                return P1_ERROR_GAS_READING_NOT_FOUND;
+            }
+        } else { 
+            // Handle case when ":24.2.1)(m3)" is not found
             return P1_ERROR_GAS_READING_NOT_FOUND;
         }
     } else {

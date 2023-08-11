@@ -41,9 +41,16 @@ void readP1Task(void *taskInfo) {
 	if (result.dsmrVersion == P1_UNKNOWN) {
 		ESP_LOGI("P1", "incorrect p1 message");
 	} else {
-		std::string eTimestampStr(result.dsmrTimestamp_e);
+		time_t e_time_t;
+		if  (result.dsmrVersion < 4.0) {
+			e_time_t = TIME_UNKNOWN;
+		} else {
+			std::string eTimestampStr(result.dsmrTimestamp_e);
+			ESP_LOGD("P1", "eTimestampStr: %s", eTimestampStr.c_str());
+			e_time_t = parseDsmrTimestamp(LAST_E_TIMESTAMP, eTimestampStr, deviceTime());
+		}	
 		std::string gTimestampStr(result.dsmrTimestamp_g);
-		time_t e_time_t = parseDsmrTimestamp(LAST_E_TIMESTAMP, eTimestampStr, deviceTime());
+		ESP_LOGD("P1", "gTimestampStr: %s", gTimestampStr.c_str());
 		time_t g_time_t = parseDsmrTimestamp(LAST_G_TIMESTAMP, gTimestampStr, deviceTime());
 
 		if  (result.dsmrVersion < 4.0  || e_time_t == TIME_UNKNOWN) {
