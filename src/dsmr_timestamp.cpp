@@ -102,6 +102,39 @@ std::string formatTimeISO8601(time_t unixTime) {
     return oss.str();
 }
 
+bool isAmbiguous(const struct tm& timeStruct) {
+    // Check if the given time is ambiguous
+    return (timeStruct.tm_isdst == -1);
+}
+bool isApproachingAmbiguity(const struct tm& timeStruct, int seconds, const char* timeZone) {
+    // Set the specified time zone
+    setenv("TZ", timeZone, 1); // 1 for overwrite
+    tzset();
+    // Convert the given time to a Unix timestamp
+    time_t givenTimestamp = mktime(const_cast<struct tm*>(&timeStruct));
+    if (givenTimestamp == -1) {
+        // Error handling if mktime fails (e.g., invalid time)
+        ESP_LOGE("isApproachingAmbiguity","Error: Invalid time.");
+        return false; // Return false to indicate the error
+    }
+
+    // Add the specified number of seconds to the Unix timestamp
+    givenTimestamp += seconds;
+
+    // Convert the adjusted timestamp to a struct tm in local time
+    struct tm adjustedTime;
+    localtime_r(&givenTimestamp, &adjustedTime);
+
+    // Set the tm_isdst field to -1 to indicate ambiguous time
+    adjustedTime.tm_isdst = -1;
+
+    // Convert the adjusted time back to a Unix timestamp
+    time_t checkTimestamp = mktime(&adjustedTime);
+
+    // Check if the adjusted time is ambiguous or approaching ambiguity
+    return (checkTimestamp != -1 && adjustedTime.tm_isdst == 1);
+}
+
 time_t parseDsmrTimestamp(int8_t timestamp_key, const std::string& timestampStr, time_t currentDeviceTime) {
     time_t unixTime = TIME_UNKNOWN;
     // Parse input timestamp string

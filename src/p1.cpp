@@ -22,21 +22,8 @@ void readP1Task(void *taskInfo) {
 	Measurements::Measurement::AddFormatter("e_ret_hi_cum__kWh", "%.3f");
 	Measurements::Measurement::AddFormatter("g_use_cum__m3", "%.3f"); 
 
-	//offline testing for dsmr timestamps
-	//parseDsmrTimestamp("230530161324S", deviceTime());
-
-
-	//call this function if you want to use a wide variety of test cases
-	//Go to the function to modify or change the cases
-	//parsedTimestampsTests();
 
     P1Data result = p1Read();
-
-	/**
-	 * to test discard erroneous gas meter readings give a wrong value to result.timeGasMeasurment
-	 * example:
-	 * result.timeGasMeasurement = "632525252525S";
-	*/
 
 	if (result.dsmrVersion == P1_UNKNOWN) {
 		ESP_LOGI("P1", "incorrect p1 message");
