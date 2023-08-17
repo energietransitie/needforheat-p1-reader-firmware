@@ -1,5 +1,6 @@
 //To create the JSON and read the P1 port
 #include <string.h>
+#include <scheduler.hpp>
 #include <p1.hpp>
 #include <P1Config.h>
 #include <dsmr_timestamp.hpp>
@@ -22,7 +23,16 @@ void readP1Task(void *taskInfo) {
 	Measurements::Measurement::AddFormatter("e_ret_hi_cum__kWh", "%.3f");
 	Measurements::Measurement::AddFormatter("g_use_cum__m3", "%.3f"); 
 
+	uint16_t e_meter_interval__s = 10; 			// 10 [s]
+	uint16_t g_meter_interval__s = 1 * 60 * 60; 	// 1 [h] * 60 [min/h] * 60 [s/min]
+	#ifdef CONFIG_TWOMES_STRESS_TEST
+		uint16_t parse_interval__s = static_cast<int>(Scheduler::Interval::MINUTES_2);
+	#else
+		uint16_t parse_interval__s = static_cast<int>(Scheduler::Interval::MINUTES_10);
+	#endif
 
+	;
+	
     P1Data result = p1Read();
 
 	if (result.dsmrVersion == P1_UNKNOWN) {
@@ -34,11 +44,17 @@ void readP1Task(void *taskInfo) {
 		} else {
 			std::string eTimestampStr(result.dsmrTimestamp_e);
 			ESP_LOGD("P1", "eTimestampStr: %s", eTimestampStr.c_str());
-			e_time_t = parseDsmrTimestamp(LAST_E_TIMESTAMP, eTimestampStr, deviceTime());
+			if (result.dsmrVersion >= 5.0) {
+				e_meter_interval__s = 1; // 1 [s]
+			}
+			e_time_t = parseDsmrTimestamp(LATEST_E_TIMESTAMP, eTimestampStr, deviceTime(), e_meter_interval__s, parse_interval__s);
 		}	
 		std::string gTimestampStr(result.dsmrTimestamp_g);
 		ESP_LOGD("P1", "gTimestampStr: %s", gTimestampStr.c_str());
-		time_t g_time_t = parseDsmrTimestamp(LAST_G_TIMESTAMP, gTimestampStr, deviceTime());
+		if (result.dsmrVersion >= 5.0) {
+			g_meter_interval__s = 5 * 60; // 5 [min] * 60 [s/min]
+		}
+		time_t g_time_t = parseDsmrTimestamp(LATEST_G_TIMESTAMP, gTimestampStr, deviceTime(), g_meter_interval__s, parse_interval__s);
 
 		if  (result.dsmrVersion < 4.0  || e_time_t == TIME_UNKNOWN) {
 			// for smart meters with version DSMR 2 and 3, no timestamps are available for the electricity meter readings; 
