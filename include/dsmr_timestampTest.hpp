@@ -14,7 +14,5 @@
 
 #include <assert.h>
 
-/**
-		 * Run trough all the available test cases
-		 */
-void parsedTimestampsTests();
+//Run trough all the available test cases
+void performTestSequence();

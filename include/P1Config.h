@@ -48,41 +48,6 @@ extern "C"
 #define P1PORT_UART_NUM UART_NUM_2
 
 
-#define JSON_BUFFER_SIZE 2048
-
-//WIFI Scan
-#define DEFAULT_SCAN_LIST_SIZE 25   //Amount of APs to scan
-#define AMOUNT_WIFI_CHANNELS 13     //Amount of available WIFI channels
-
-//MEASUREMENT TYPE STRUCTS:
-#define MAX_BOILER_SAMPLES 60
-typedef struct Boiler_message {
-    uint8_t measurementType;  //Type of measurements
-    uint8_t numberofMeasurements;                       //number of measurements in burst
-    uint16_t index;                                     //Number identifying the message, only increments on receiving an ACK from Gateway. Could be uint8_t since overflows are ignored?
-    uint16_t intervalTime;               //Interval between measurements, for timestamping in gateway
-    uint16_t pipeTemps1[MAX_BOILER_SAMPLES];             //measurements of the first temperature sensor
-    uint16_t pipeTemps2[MAX_BOILER_SAMPLES];             //measurements of the second temperature sensor
-} Boiler_message;
-#define MAX_TEMP_SAMPLES 120
-typedef struct Roomtemp_Message {
-    uint8_t measurementType;                            //Type of measurements
-    uint8_t numberofMeasurements;                       //number of measurements in burst
-    uint16_t index;                                     //Number identifying the message, only increments on receiving an ACK from Gateway. Could be uint8_t since overflows are ignored?
-    uint16_t intervalTime;                              //Interval between measurements, for timestamping in gateway
-    uint16_t roomTemps[MAX_TEMP_SAMPLES];                //measurements of the Si7051
-} Roomtemp_Message;
-#define MAX_CO2_SAMPLES 40
-typedef struct CO2_Message {
-    uint8_t measurementType;                            //Type of measurements
-    uint8_t numberofMeasurements;                       //number of measurements in burst
-    uint16_t index;                                     //Number identifying the message, only increments on receiving an ACK from Gateway. Could be uint8_t since overflows are ignored?
-    uint16_t intervalTime;                              //Interval between measurements, for timestamping in gateway
-    uint16_t co2ppm[MAX_CO2_SAMPLES];                    //measurements of the CO2 concentration
-    uint16_t co2temp[MAX_CO2_SAMPLES];                   //measurements of the temperature by SCD41
-    uint16_t co2humid[MAX_CO2_SAMPLES];                  //measurements of the humidity
-} CO2_Message;
-
 //Error types for P1 data reading:
 #define P1_READ_OK 0
 #define P1_ERROR_DSMR_NOT_FOUND 1
@@ -100,36 +65,22 @@ typedef struct CO2_Message {
 
 //Struct for holding the P1 Data:
 typedef struct P1Data {
-    int8_t dsmrVersion;          // DSMR version without decimal point
-    double elecUsedT1;           // Electrical Energy used Tariff 1 in kWh
-    double elecUsedT2;           // Electrical Energy used Tariff 2 in kWh
-    double elecDeliveredT1;      // Electrical Delivered used Tariff 1 in kWh
-    double elecDeliveredT2;      // Electrical Delivered used Tariff 2 in kWh
-    char timeElecMeasurement[14]; //Timestamp for most recent Electricity measurement
-    double gasUsage;             // Gasverbruik in dm3
-    char timeGasMeasurement[14]; // Timestamp for most recent gas measurement YY:MM:DD:HH:MM:SS And S/W for summer or winter time
+    float dsmrVersion;         // DSMR version (x.y, where x is the major version and y is the first minor verrion after the decimal point)
+    double e_use_lo_cum__kWh;  // Electrical Energy used against Tariff 1 [kWh]
+    double e_use_hi_cum__kWh;  // Electrical Energy used against Tariff 2 [kWh]
+    double e_ret_lo_cum__kWh;  // Electrical Returned against Tariff 1 [kWh]
+    double e_ret_hi_cum__kWh;  // Electrical Returned against Tariff 2 [kWh]
+    char dsmrTimestamp_e[14];  // DSMR timestamp string for the electricity meter readings [14 positions needed for YYMDDhhmssX string and '\0' terminator]
+    double g_use_cum__m3;      // Gas meter reading [m3]
+    char dsmrTimestamp_g[14];  // DSMR timestamp string for gas meter reading [14 positions needed for YYMDDhhmssX or YYMDDhhmss string and '\0' terminator]
 } P1Data;
 
 
-
-//For getting channel list and amount of channels:
-typedef struct channelListstruct {
-    uint8_t amount;
-    uint8_t channels[DEFAULT_SCAN_LIST_SIZE];
-}channelList;
-
-
-
-
-
 /** ====== GLOBAL VARIABLES ============== */
-// uint16_t wifiQueue = 0;
 
 /**
  *  ========== FUNCTIONS ================
  */
-
- //Init
 
 void initP1UART();
 void setP1UARTConfigDSMR4or5();
