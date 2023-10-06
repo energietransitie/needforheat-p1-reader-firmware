@@ -26,7 +26,7 @@ Zoek de P1-poort op uw slimme elektriciteitsmeter.
 
 ![p1-poort](../assets/P1MeterEnexis.png)
 
-_De P1-poort bevindt zich aan de voorkant of onderkant van veel slimme meters. Soms is er een gemakkelijk verwijderbare hoes voor._
+_De P1-poort bevindt zich aan de voorkant of onderkant van veel slimme meters, soms achter een klepje._
 
 Als er al een kabel in de p1-poort is aangesloten, haal deze er dan uit en sluit deze aan op de vrije connector van de splitter.
 
