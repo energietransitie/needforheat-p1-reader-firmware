@@ -22,7 +22,7 @@ Een wifi-reset van het apparaatje kan nodig zijn als je wifinetwerk thuis verand
 De wifi-reset werkt als volgt:
 
 1. Hou de K-knop van de slimmemetermodule ingedrukt (je voelt een duidelijke klik).
-2. Laat de knop los na ruim 10 seconden en nadat je een rood lampje 5 keer hebt zien knipperen (als het te licht is ziet u het wellicht niet).
+2. Laat de knop los na ruim 10 seconden, nadat je een groen lampje 5 keer hebt zien knipperen (als het te licht is ziet u het wellicht niet).
 3. In de NeedForhat app, scan de QR-code van uw slimmemetermodule opnieuw en volg de aanwijzingen.
 
 ## Wat als ik andere vragen of opmerkingen heb?
