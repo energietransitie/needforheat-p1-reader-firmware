@@ -65,6 +65,7 @@ jobs:
       - name: Import SECURE_BOOTLOADER_SIGNING_KEY
         env:
           SECURE_BOOTLOADER_SIGNING_KEY: ${{ secrets.SECURE_BOOTLOADER_SIGNING_KEY }}
+        if: ${{ env.SECURE_BOOTLOADER_SIGNING_KEY != '' }}
         run: echo "$SECURE_BOOTLOADER_SIGNING_KEY" > ./secure_boot_signing_key.pem
         
       # Sign the firmware
@@ -75,7 +76,7 @@ jobs:
       
       # Set ARCHIVE_NAME variable from ARCHIVE_PREFIX and tag name.
       - name: Set ARCHIVE_NAME
-        run: echo "ARCHIVE_NAME=${ARCHIVE_PREFIX}_${{ matrix.platformio_env }}_${{ matrix.twomes_server_env }}_${GITHUB_REF/refs\/tags\//}" >> $GITHUB_ENV
+        run: test -f $BUILD_DIR/firmware-signed_${{ matrix.platformio_env }}_${{ matrix.twomes_server_env }}.bin && echo "ARCHIVE_NAME=${ARCHIVE_PREFIX}_${{ matrix.platformio_env }}_${{ matrix.twomes_server_env }}_${GITHUB_REF/refs\/tags\//}" >> $GITHUB_ENV
       
       # Archive binary files.
       - name: Archive binary files
