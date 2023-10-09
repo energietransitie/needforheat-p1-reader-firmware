@@ -18,7 +18,7 @@ jobs:
         # List all of the PlatformIO platforms to build.
         platformio_env: 
           - ESP32DEV
-          - M5STACK_COREINK
+          # - M5STACK_COREINK
 
         # Twomes server environments to build for.
         twomes_server_env:
