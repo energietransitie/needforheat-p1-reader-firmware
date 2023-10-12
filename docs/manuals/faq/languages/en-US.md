@@ -26,5 +26,5 @@ The Wi-Fi reset works as follows:
 2. After holding it down for about 10 seconds, after you see a green light blinking 5 times, release the button (if the surroundings are bright, you may not see it).
 3. In the NeedForhat app, scan the QR code of your smart meter module again and follow the instructions.
 
-## What is I have other quesions or remarks?
+## What if I have other quesions or remarks?
 Please send an email to the NeedForHeat research helpdesk via [needforheatonderzoek@windesheim.nl](needforheatonderzoek@windesheim.nl).
