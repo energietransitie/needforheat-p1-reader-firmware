@@ -12,13 +12,9 @@ De slimmemetermodule bestaat uit een p1-gateway en kabel (boven), een splitter m
 
 Volg alle onderstaande stappen voordat u verder gaat in de NeedForHeat-app. Als u na het lezen van deze instructies nog vragen heeft, controleer dan eerst de [FAQ-sectie voor de slimmemetermodule apparaat](../../faq/). Daar vindt u ook informatie over hoe u hulp kunt krijgen als u niet verder kunt.
 
-## 1. Sluit kabels aan op de witte "Twomes"-module
+## 1. Check of kabels goed op elkaar zijn aangesloten 
 
-In de doos die u heeft ontvangen, zijn de kabels van de slimmemetermodule mogelijk nog niet aangesloten. Zorg ervoor dat alle kabels zijn aangesloten zoals volgt:
-
-- de micro-USB-stekker moet worden aangesloten op de zijkant van de witte "Twomes"-module; hij past slechts op één manier;
-- de lange zwarte kabel moet aan één uiteinde worden aangesloten op de witte "Twomes"-module en in de splitter, met naast zich een lege aansluiting.
-- de korte zwarte kabel moet worden aangesloten op de splitter aan de kant met de enkele aansluiting.
+In de doos die u heeft ontvangen, zijn de kabels van de slimmemetermodule op elkaar aangesloten; het moet eruit zien zoals op bovenstaande foto is aangegeven. Eventuele kabelbinders mag u verwijderen, zodat de kabels niet meer zijn opgerold.
 
 ## 2. Sluit de achterste kabel van de slimme meter aan op de p1-poort
 
