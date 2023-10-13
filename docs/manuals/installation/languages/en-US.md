@@ -12,13 +12,9 @@ The smart meter module consists of a p1-gateway and cable (top), a splitter with
 
 Follow all steps below before you continue in the NeedForHeat app. If you have any questions after reading these instructions, please first check the [smart meter module device FAQ](../../faq/) section. There you will also find information on how to get assistance if you are unable to proceed.
 
-## 1. Attach cables to the white "Twomes" module
+## 1. Check if cables are properly connected to each other
 
-In the box you received, the cables of the smart meter module may not be connected yet. Make sure all cables are connnected as follows:
-
-- the micro-USB plug should be plugged into the side of white "Twomes" module; it only fits one way;
-- the long black cable should be connected on one end to the white "Twomes" module and into the splitter, leaving one empty socket next to it.
-- the short black  cable should be connected to the splitter on the side with the single socket.
+In the box you have received, the cables of the smart meter module are connected to each other; it should look like the picture above indicates. You may remove any cable ties so that the cables are no longer coiled.
 
 ## 2. Connect the back cable of the smart meter to the p1 port
 
