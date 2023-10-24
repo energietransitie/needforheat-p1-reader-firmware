@@ -5,7 +5,6 @@ Frequently asked information about the smart meter module.
 # 1. What data does this device collect?
 
 Every 10 minutes, the smart meter module registers via the P1 port of your smart electricity meter:
-the living room module measures:
 
 - meter readings of your gas meter;
 - meter readings of your electricity meter.

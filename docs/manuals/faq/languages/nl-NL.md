@@ -25,8 +25,8 @@ De wifi-reset werkt als volgt:
 2. Laat de knop los na ruim 10 seconden, nadat je een groen lampje 5 keer hebt zien knipperen (als het te licht is ziet u het wellicht niet).
 3. In de NeedForhat app, scan de QR-code van uw slimmemetermodule opnieuw en volg de aanwijzingen.
 
-## 4. Waar kan ik meer technisch info vinden over dit apparaatje?
-De broncode van dit meetapparaatje is openbaar beschibaar via GitHub via [twomes-p1-reader-firmware](https://github.com/energietransitie/twomes-p1-reader-firmware).
+## 4. Waar kan ik meer technische info vinden over dit apparaatje?
+De broncode van dit meetapparaatje is openbaar beschikbaar via GitHub via [twomes-p1-reader-firmware](https://github.com/energietransitie/twomes-p1-reader-firmware).
 
 ## Wat als ik andere vragen of opmerkingen heb?
 Stuur dan een e-mail naar de helpdesk van het NeedForHeat-onderzoek via [needforheatonderzoek@windesheim.nl](needforheatonderzoek@windesheim.nl).
