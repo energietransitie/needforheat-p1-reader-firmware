@@ -16,7 +16,7 @@ Follow all steps below before you continue in the NeedForHeat app. If you have a
 
 In the box you have received, the cables of the smart meter module are connected to each other; it should look like the picture above indicates. You may remove any cable ties so that the cables are no longer coiled.
 
-## 2. Connect the back cable of the smart meter to the p1 port
+## 2. Connect the connector of the smart meter module to the p1 port
 
 Locate the P1 port on your smart electricity meter.
 
@@ -24,7 +24,7 @@ Locate the P1 port on your smart electricity meter.
 
 _The P1 port is located on the front or bottom of many smart meters. Sometimes there is an easily removable cover in front of it._
 
-If there is already a cable plugged into the p1-port, unplug it and plug it in the free connector of the splitter.
+If there is already a cable plugged into the P1 port, unplug it and plug it in the free connector of the splitter.
 
 Insert the free connector of the short black cable into the P1 port of your smart electricity meter.
 

@@ -24,7 +24,7 @@ Zoek de P1-poort op uw slimme elektriciteitsmeter.
 
 _De P1-poort bevindt zich aan de voorkant of onderkant van veel slimme meters, soms achter een klepje._
 
-Als er al een kabel in de p1-poort is aangesloten, haal deze er dan uit en sluit deze aan op de vrije connector van de splitter.
+Als er al een kabel in de P1-poort is aangesloten, haal deze er dan uit en sluit deze aan op de vrije connector van de splitter.
 
 Steek de vrije connector van de korte zwarte kabel in de P1-poort van uw slimme elektriciteitsmeter.
 
