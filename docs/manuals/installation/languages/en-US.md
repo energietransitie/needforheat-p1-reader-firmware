@@ -36,6 +36,10 @@ Find a stable place for your smart meter module.
 
 Plug the power adapter into an available electrical outlet near your smart meter.
 
+This is what a connected smart meter module may look like:
+
+![smart meter module connected](../assets/p1-installed.jpg)
+
 ## 4. Connect the device with your home Wi-Fi.
 
 Continue in the NeedForHeat app to connect the device to your home Wi-Fi network.

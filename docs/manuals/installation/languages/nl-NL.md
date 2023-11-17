@@ -16,7 +16,7 @@ Volg alle onderstaande stappen voordat u verder gaat in de NeedForHeat-app. Als 
 
 In de doos die u heeft ontvangen, zijn de kabels van de slimmemetermodule op elkaar aangesloten; het moet eruit zien zoals op bovenstaande foto is aangegeven. Eventuele kabelbinders mag u verwijderen, zodat de kabels niet meer zijn opgerold.
 
-## 2. Sluit de achterste kabel van de slimme meter aan op de p1-poort
+## 2. Sluit connector aan op de p1-poort
 
 Zoek de P1-poort op uw slimme elektriciteitsmeter.
 
@@ -35,6 +35,10 @@ Zoek een stabiele plek voor uw slimmemetermodule.
 ## 3. Steek de stekker in het stopcontact.
 
 Steek de voedingsadapter in een beschikbaar stopcontact in de buurt van uw slimme meter.
+
+Hieronder volgt een voorbeeld van een aangesloten slimmemetermodule:
+
+![aangesloten slimmemetermodule](../assets/p1-installed.jpg)
 
 ## 4. Verbind het apparaat met uw wifi thuis.
 
