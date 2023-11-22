@@ -171,6 +171,8 @@ int p1StringToStruct(const char *p1String, P1Data *p1Struct) {
     //REVIEW: should packaging into struct be omitted and directly package into JSON format?ol
 
     unsigned int n;
+    
+    p1Struct->dsmrVersion = P1_UNKNOWN;
 
     //DSMR version: OBIS reference 1-3:0.2.8
     if (getBaudrate__b_s_1() == 9600) {
