@@ -10,7 +10,7 @@ Elke 10 minuten registreert de slimmemetermodule informatie over de tellerstande
 
 De slimmemetermodule bestaat uit een p1-gateway en kabel (boven), een splitter met nog een kabel (links onder) en een USB-voedingsadapter (rechts onder).
 
-Volg alle onderstaande stappen voordat u verder gaat in de NeedForHeat-app. Als u na het lezen van deze instructies nog vragen heeft, controleer dan eerst de [FAQ-sectie voor de slimmemetermodule apparaat](../../faq/). Daar vindt u ook informatie over hoe u hulp kunt krijgen als u niet verder kunt.
+Volg alle onderstaande stappen voordat u verder gaat in de NeedForHeat-app. Als u na het lezen van deze instructies nog vragen heeft, controleer dan eerst de [FAQ-sectie voor de slimmemetermodule apparaat](../../../faq/). Daar vindt u ook informatie over hoe u hulp kunt krijgen als u niet verder kunt.
 
 ## 1. Check of kabels goed op elkaar zijn aangesloten 
 
