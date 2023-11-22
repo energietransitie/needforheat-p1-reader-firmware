@@ -10,7 +10,7 @@ Every 10 minutes, the smart meter module registers information about the reading
 
 The smart meter module consists of a p1-gateway and cable (top), a splitter with another cable (bottom left) and a USB power adapter (bottom right).
 
-Follow all steps below before you continue in the NeedForHeat app. If you have any questions after reading these instructions, please first check the [smart meter module device FAQ](../../faq/) section. There you will also find information on how to get assistance if you are unable to proceed.
+Follow all steps below before you continue in the NeedForHeat app. If you have any questions after reading these instructions, please first check the [smart meter module device FAQ](../../../faq/) section. There you will also find information on how to get assistance if you are unable to proceed.
 
 ## 1. Check if cables are properly connected to each other
 

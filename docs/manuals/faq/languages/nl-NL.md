@@ -11,7 +11,7 @@ Elke 10 minuten meet de slimmemetermodule via de P1-poort van uw slimme elektric
 
 ## 2. Hoe kan ik het apparaatje installeren?
 
-Zie hiervoor de [installatiehandleiding](../../installation/).
+Zie hiervoor de [installatiehandleiding](../../../installation/).
 
 ## 3. Hoe kan ik het apparaatje opnieuw koppelen aan wifi?
 

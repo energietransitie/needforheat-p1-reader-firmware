@@ -11,7 +11,7 @@ Every 10 minutes, the smart meter module registers via the P1 port of your smart
 
 ## 2. How can I install the device?
 
-For installation instructions, please refer to the [installation manual](../../installation/).
+For installation instructions, please refer to the [installation manual](../../../installation/).
 
 ## 3. How can I re-connect the device to Wi-Fi?
 
