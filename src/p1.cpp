@@ -16,12 +16,6 @@ auto secureUploadQueue = SecureUpload::Queue::GetInstance();
 
 //function to read P1 port and store message in a buffer
 void readP1Task(void *taskInfo) {
-	// Add formatters for all the measurements.
-	Measurements::Measurement::AddFormatter("e_use_lo_cum__kWh", "%.3f");
-	Measurements::Measurement::AddFormatter("e_use_hi_cum__kWh", "%.3f");
-	Measurements::Measurement::AddFormatter("e_ret_lo_cum__kWh", "%.3f");
-	Measurements::Measurement::AddFormatter("e_ret_hi_cum__kWh", "%.3f");
-	Measurements::Measurement::AddFormatter("g_use_cum__m3", "%.3f"); 
 
 	uint16_t e_meter_interval__s = 10; 			// 10 [s]
 	uint16_t g_meter_interval__s = 1 * 60 * 60; 	// 1 [h] * 60 [min/h] * 60 [s/min]
@@ -38,10 +32,15 @@ void readP1Task(void *taskInfo) {
 	if (result.dsmrVersion == P1_UNKNOWN) {
 		ESP_LOGI("P1", "incorrect p1 message");
 	} else {
-		time_t e_time_t;
-		if  (result.dsmrVersion < 4.0) {
-			e_time_t = TIME_UNKNOWN;
-		} else {
+		// Add formatters for all the measurements.
+		Measurements::Measurement::AddFormatter("e_use_lo_cum__kWh", "%.3f");
+		Measurements::Measurement::AddFormatter("e_use_hi_cum__kWh", "%.3f");
+		Measurements::Measurement::AddFormatter("e_ret_lo_cum__kWh", "%.3f");
+		Measurements::Measurement::AddFormatter("e_ret_hi_cum__kWh", "%.3f");
+		Measurements::Measurement::AddFormatter("g_use_cum__m3", "%.3f"); 
+
+		time_t e_time_t = TIME_UNKNOWN;
+		if  (result.dsmrVersion >= 4.0) {
 			std::string eTimestampStr(result.dsmrTimestamp_e);
 			ESP_LOGD("P1", "eTimestampStr: %s", eTimestampStr.c_str());
 			if (result.dsmrVersion >= 5.0) {
@@ -49,12 +48,14 @@ void readP1Task(void *taskInfo) {
 			}
 			e_time_t = parseDsmrTimestamp(LATEST_E_TIMESTAMP, eTimestampStr, deviceTime(), e_meter_interval__s, parse_interval__s);
 		}	
+
+		time_t g_time_t = TIME_UNKNOWN;
 		std::string gTimestampStr(result.dsmrTimestamp_g);
 		ESP_LOGD("P1", "gTimestampStr: %s", gTimestampStr.c_str());
 		if (result.dsmrVersion >= 5.0) {
 			g_meter_interval__s = 5 * 60; // 5 [min] * 60 [s/min]
 		}
-		time_t g_time_t = parseDsmrTimestamp(LATEST_G_TIMESTAMP, gTimestampStr, deviceTime(), g_meter_interval__s, parse_interval__s);
+		g_time_t = parseDsmrTimestamp(LATEST_G_TIMESTAMP, gTimestampStr, deviceTime(), g_meter_interval__s, parse_interval__s);
 
 		if  (result.dsmrVersion < 4.0  || e_time_t == TIME_UNKNOWN) {
 			// for smart meters with version DSMR 2 and 3, no timestamps are available for the electricity meter readings; 
