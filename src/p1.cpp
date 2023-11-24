@@ -37,11 +37,6 @@ void BlinkLED(gpio_num_t gpioNum, int amount)
 //function to read P1 port and store message in a buffer
 void readP1Task(void *taskInfo) {
 	// Add formatters for all the measurements.
-	Measurements::Measurement::AddFormatter("e_use_lo_cum__kWh", "%.3f");
-	Measurements::Measurement::AddFormatter("e_use_hi_cum__kWh", "%.3f");
-	Measurements::Measurement::AddFormatter("e_ret_lo_cum__kWh", "%.3f");
-	Measurements::Measurement::AddFormatter("e_ret_hi_cum__kWh", "%.3f");
-	Measurements::Measurement::AddFormatter("g_use_cum__m3", "%.3f"); 
 
 	uint16_t e_meter_interval__s = 10; 			// 10 [s]
 	uint16_t g_meter_interval__s = 1 * 60 * 60; 	// 1 [h] * 60 [min/h] * 60 [s/min]
@@ -59,10 +54,16 @@ void readP1Task(void *taskInfo) {
 		ESP_LOGI("P1", "incorrect p1 message");
 		BlinkLED(RED_LED_D1_ERROR, 2);
 	} else {
-		time_t e_time_t;
-		if  (result.dsmrVersion < 4.0) {
-			e_time_t = TIME_UNKNOWN;
-		} else {
+		// Add formatters for all the measurements.
+		Measurements::Measurement::AddFormatter("e_use_lo_cum__kWh", "%.3f");
+		Measurements::Measurement::AddFormatter("e_use_hi_cum__kWh", "%.3f");
+		Measurements::Measurement::AddFormatter("e_ret_lo_cum__kWh", "%.3f");
+		Measurements::Measurement::AddFormatter("e_ret_hi_cum__kWh", "%.3f");
+		Measurements::Measurement::AddFormatter("g_use_cum__m3", "%.3f"); 
+		Measurements::Measurement::AddFormatter("dsmr_version__0", "%.1f"); 
+
+		time_t e_time_t = TIME_UNKNOWN;
+		if  (result.dsmrVersion >= 4.0) {
 			std::string eTimestampStr(result.dsmrTimestamp_e);
 			ESP_LOGD("P1", "eTimestampStr: %s", eTimestampStr.c_str());
 			if (result.dsmrVersion >= 5.0) {
@@ -85,10 +86,13 @@ void readP1Task(void *taskInfo) {
 			Measurements::Measurement e_use_hi_cum__kWh("e_use_hi_cum__kWh", result.e_use_hi_cum__kWh);
 			Measurements::Measurement e_ret_lo_cum__kWh("e_ret_lo_cum__kWh", result.e_ret_lo_cum__kWh);
 			Measurements::Measurement e_ret_hi_cum__kWh("e_ret_hi_cum__kWh", result.e_ret_hi_cum__kWh);
+			Measurements::Measurement dsmr_version__0("dsmr_version__0", result.dsmrVersion);
+
 			secureUploadQueue.AddMeasurement(e_use_lo_cum__kWh);
 			secureUploadQueue.AddMeasurement(e_use_hi_cum__kWh);
 			secureUploadQueue.AddMeasurement(e_ret_lo_cum__kWh);
 			secureUploadQueue.AddMeasurement(e_ret_hi_cum__kWh);
+			secureUploadQueue.AddMeasurement(dsmr_version__0);
 		} else {
 			// for smart meters with version DSMR 4 and up, up timestamps are availeble for the electricity meter readings;
 			// so, make the Measurement use the smart meter timetamp by specifying its parsed timestamp
@@ -96,10 +100,13 @@ void readP1Task(void *taskInfo) {
 			Measurements::Measurement e_use_hi_cum__kWh("e_use_hi_cum__kWh", result.e_use_hi_cum__kWh, e_time_t);
 			Measurements::Measurement e_ret_lo_cum__kWh("e_ret_lo_cum__kWh", result.e_ret_lo_cum__kWh, e_time_t);
 			Measurements::Measurement e_ret_hi_cum__kWh("e_ret_hi_cum__kWh", result.e_ret_hi_cum__kWh, e_time_t);
+			Measurements::Measurement dsmr_version__0("dsmr_version__0", result.dsmrVersion, e_time_t);
+
 			secureUploadQueue.AddMeasurement(e_use_lo_cum__kWh);
 			secureUploadQueue.AddMeasurement(e_use_hi_cum__kWh);
 			secureUploadQueue.AddMeasurement(e_ret_lo_cum__kWh);
 			secureUploadQueue.AddMeasurement(e_ret_hi_cum__kWh);
+			secureUploadQueue.AddMeasurement(dsmr_version__0);
 		}
 		if(g_time_t != TIME_UNKNOWN) {
 			// only upload gas meter values if the timestamp is proper (e.g., not when result.timeGasMeasurement == "632525252525S")
