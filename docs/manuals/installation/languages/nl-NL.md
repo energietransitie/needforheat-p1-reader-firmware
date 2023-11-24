@@ -4,7 +4,7 @@
 
 # Over het apparaat
 
-Elke 10 minuten registreert de slimmemetermodule informatie over de tellerstanden van uw gas- en elektriciteitsmeter via de P1-poort van uw slimme elektriciteitsmeter.
+Elke 10 minuten registreert de slimmemetermodule informatie over de tellerstanden van uw gas- en elektriciteitsmeter via de P1-poort van uw slimme elektriciteitsmeter en stuurt deze, samen met informtie over versie en type van uw slimme meter door naar de onderzoeksserver.
 
 # Installatie
 

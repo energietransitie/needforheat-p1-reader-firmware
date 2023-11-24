@@ -1,5 +1,6 @@
 //To create the JSON and read the P1 port
 #include <string.h>
+#include <sstream>
 #include <scheduler.hpp>
 #include <p1.hpp>
 #include <P1Config.h>
@@ -34,6 +35,31 @@ void BlinkLED(gpio_num_t gpioNum, int amount)
 	}
 }
 
+std::string hexToNormalString(const char* hexString) {
+    std::string normalString;
+
+    size_t len = strlen(hexString);
+    ESP_LOGD("P1", "hex-encoded string length: %d", len);
+    if (len % 2 != 0) {
+        ESP_LOGE("P1", "Invalid hex-encoded string length");
+        return "";
+    }
+
+    for (size_t i = 0; i < len / 2; ++i) {
+        int byte;
+        if (std::istringstream(std::string(hexString + 2 * i, 2)) >> std::hex >> byte) {
+            normalString += static_cast<char>(byte);
+        } else {
+            // Handle conversion error
+            ESP_LOGE("P1", "Error converting hex to byte");
+            return "";
+        }
+    }
+
+
+    return normalString;
+}
+
 //function to read P1 port and store message in a buffer
 void readP1Task(void *taskInfo) {
 	// Add formatters for all the measurements.
@@ -46,8 +72,6 @@ void readP1Task(void *taskInfo) {
 		uint16_t parse_interval__s = static_cast<int>(Scheduler::Interval::MINUTES_10);
 	#endif
 
-	;
-	
     P1Data result = p1Read();
 
 	if (result.dsmrVersion == P1_UNKNOWN) {
@@ -60,7 +84,7 @@ void readP1Task(void *taskInfo) {
 		Measurements::Measurement::AddFormatter("e_ret_lo_cum__kWh", "%.3f");
 		Measurements::Measurement::AddFormatter("e_ret_hi_cum__kWh", "%.3f");
 		Measurements::Measurement::AddFormatter("g_use_cum__m3", "%.3f"); 
-		Measurements::Measurement::AddFormatter("dsmr_version__0", "%.1f"); 
+		Measurements::Measurement::AddFormatter("dsmr_version__0", "%.1f");
 
 		time_t e_time_t = TIME_UNKNOWN;
 		if  (result.dsmrVersion >= 4.0) {
@@ -78,6 +102,17 @@ void readP1Task(void *taskInfo) {
 		}
 		time_t g_time_t = parseDsmrTimestamp(LATEST_G_TIMESTAMP, gTimestampStr, deviceTime(), g_meter_interval__s, parse_interval__s);
 
+		ESP_LOGD("P1", "meter code (hex-encoded): %s", result.meter_code__hex);
+
+		std::string meter_code = hexToNormalString(result.meter_code__hex);
+		if (meter_code.empty()) {
+			ESP_LOGE("P1", "meter code (hex-decoded): is empty!");
+		} else {
+			Measurements::Measurement::AddFormatter("meter_code__str", "%s");
+			ESP_LOGD("P1", "meter code (hex-decoded): %s", meter_code.c_str());
+		}
+
+
 		if  (result.dsmrVersion < 4.0  || e_time_t == TIME_UNKNOWN) {
 			// for smart meters with version DSMR 2 and 3, no timestamps are available for the electricity meter readings; 
 			// also, if for some reason, timestamp parsing for DSMR4 and up is not going ok, then upload with device timestamps (second best for accuracy) 
@@ -93,6 +128,11 @@ void readP1Task(void *taskInfo) {
 			secureUploadQueue.AddMeasurement(e_ret_lo_cum__kWh);
 			secureUploadQueue.AddMeasurement(e_ret_hi_cum__kWh);
 			secureUploadQueue.AddMeasurement(dsmr_version__0);
+
+			if (!meter_code.empty()) {
+				Measurements::Measurement meter_code__str("meter_code__str", meter_code.c_str());
+				secureUploadQueue.AddMeasurement(meter_code__str);
+			}
 		} else {
 			// for smart meters with version DSMR 4 and up, up timestamps are availeble for the electricity meter readings;
 			// so, make the Measurement use the smart meter timetamp by specifying its parsed timestamp
@@ -107,6 +147,10 @@ void readP1Task(void *taskInfo) {
 			secureUploadQueue.AddMeasurement(e_ret_lo_cum__kWh);
 			secureUploadQueue.AddMeasurement(e_ret_hi_cum__kWh);
 			secureUploadQueue.AddMeasurement(dsmr_version__0);
+			if (!meter_code.empty()) {
+				Measurements::Measurement meter_code__str("meter_code__str", meter_code.c_str(), e_time_t);
+				secureUploadQueue.AddMeasurement(meter_code__str);
+			}
 		}
 		if(g_time_t != TIME_UNKNOWN) {
 			// only upload gas meter values if the timestamp is proper (e.g., not when result.timeGasMeasurement == "632525252525S")

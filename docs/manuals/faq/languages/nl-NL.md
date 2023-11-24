@@ -7,7 +7,8 @@ Veelgevraagde informatie over de slimmemetermodule.
 Elke 10 minuten meet de slimmemetermodule via de P1-poort van uw slimme elektriciteitsmeter:
 
 - tellerstanden van uw gasmeter;
-- tellerstanden van uw elektriciteitsmeter.
+- tellerstanden van uw elektriciteitsmeter;
+- DSMR versie en type van uw elektriciteitsmeter.
 
 ## 2. Hoe kan ik het apparaatje installeren?
 

@@ -4,7 +4,7 @@
 
 # About the device
 
-Every 10 minutes, the smart meter module registers information about the readings of your gas and electricity meters via the P1 port of your smart electricity meter.
+Every 10 minutes, the smart meter module registers information about the readings of your gas and electricity meters via the P1 port of your smart electricity meter. It then sends this information, along with details about the version and type of your smart meter, to the research server.
         
 # Installation
 

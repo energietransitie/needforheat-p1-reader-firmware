@@ -57,6 +57,7 @@ extern "C"
 #define P1_ERROR_ELECRETURNT2_NOT_FOUND 5
 #define P1_ERROR_GAS_READING_NOT_FOUND 6
 #define P1_ERROR_ELEC_TIMESTAMP_NOT_FOUND 7
+#define P1_ERROR_METER_CODE_NOT_FOUND 8
 
 // Constant to indicate P1 port parameters unknown
 #define P1_UNKNOWN -1
@@ -73,6 +74,7 @@ typedef struct P1Data {
     char dsmrTimestamp_e[14];  // DSMR timestamp string for the electricity meter readings [14 positions needed for YYMDDhhmssX string and '\0' terminator]
     double g_use_cum__m3;      // Gas meter reading [m3]
     char dsmrTimestamp_g[14];  // DSMR timestamp string for gas meter reading [14 positions needed for YYMDDhhmssX or YYMDDhhmss string and '\0' terminator]
+    char meter_code__hex[11];  // hex-encoded meter code string [11 positions needed for 5 characters * 2 hex characters per character and '\0' terminator]
 } P1Data;
 
 

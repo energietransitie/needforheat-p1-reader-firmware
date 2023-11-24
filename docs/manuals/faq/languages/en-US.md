@@ -7,7 +7,8 @@ Frequently asked information about the smart meter module.
 Every 10 minutes, the smart meter module registers via the P1 port of your smart electricity meter:
 
 - meter readings of your gas meter;
-- meter readings of your electricity meter.
+- meter readings of your electricity meter;
+- DSMR version and type of your electricity meter.
 
 ## 2. How can I install the device?
 
