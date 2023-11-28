@@ -71,9 +71,9 @@ typedef struct P1Data {
     double e_use_hi_cum__kWh;  // Electrical Energy used against Tariff 2 [kWh]
     double e_ret_lo_cum__kWh;  // Electrical Returned against Tariff 1 [kWh]
     double e_ret_hi_cum__kWh;  // Electrical Returned against Tariff 2 [kWh]
-    char dsmrTimestamp_e[14];  // DSMR timestamp string for the electricity meter readings [14 positions needed for YYMDDhhmssX string and '\0' terminator]
+    char dsmrTimestamp_e[14];  // DSMR timestamp string for the electricity meter readings [14 positions needed for YYMMDDhhmmssX string and '\0' terminator]
     double g_use_cum__m3;      // Gas meter reading [m3]
-    char dsmrTimestamp_g[14];  // DSMR timestamp string for gas meter reading [14 positions needed for YYMDDhhmssX or YYMDDhhmss string and '\0' terminator]
+    char dsmrTimestamp_g[14];  // DSMR timestamp string for gas meter reading [14 positions needed for YYMMDDhhmmssX or YYMMDDhhmmss string and '\0' terminator]
     char meter_code__hex[11];  // hex-encoded meter code string [11 positions needed for 5 characters * 2 hex characters per character and '\0' terminator]
 } P1Data;
 

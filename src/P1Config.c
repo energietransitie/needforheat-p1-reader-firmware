@@ -245,7 +245,7 @@ int p1StringToStruct(const char *p1String, P1Data *p1Struct) {
             return P1_ERROR_METER_CODE_NOT_FOUND;
         }
         else {
-            p1Struct->meter_code__hex[11] = '\0'; //add a zero terminator at the end to read as string
+            p1Struct->meter_code__hex[10] = '\0'; //add a zero terminator at the end to read as string
         }
 
     } else if (p1Struct->dsmrVersion < 4.0) {
@@ -282,7 +282,7 @@ int p1StringToStruct(const char *p1String, P1Data *p1Struct) {
             return P1_ERROR_METER_CODE_NOT_FOUND;
         }
         else {
-            p1Struct->meter_code__hex[11] = '\0'; //add a zero terminator at the end to read as string
+            p1Struct->meter_code__hex[10] = '\0'; //add a zero terminator at the end to read as string
         }
 
     } else {
@@ -310,7 +310,7 @@ int p1StringToStruct(const char *p1String, P1Data *p1Struct) {
             return P1_ERROR_METER_CODE_NOT_FOUND;
         }
         else {
-            p1Struct->meter_code__hex[11] = '\0'; //add a zero terminator at the end to read as string
+            p1Struct->meter_code__hex[10] = '\0'; //add a zero terminator at the end to read as string
         }
     }
 
@@ -326,7 +326,8 @@ int p1StringToStruct(const char *p1String, P1Data *p1Struct) {
  *
  */
 void printP1Data(P1Data *p1Struct) {
-    ESP_LOGI("P1 Print", "DSMR VERSION: %.1f", p1Struct->dsmrVersion);
+    ESP_LOGI("P1 Print", "meter_code__hex: %s", p1Struct->meter_code__hex);
+    ESP_LOGI("P1 Print", "dsmr_version__0: %.1f", p1Struct->dsmrVersion);
     if(getBaudrate__b_s_1() == 9600) {
         //dsmr2/3 smart meters
         ESP_LOGI("P1 Print", "DSMR2/3: no ELEC TIMESTAMP");
