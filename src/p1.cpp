@@ -14,6 +14,26 @@
 
 auto secureUploadQueue = SecureUpload::Queue::GetInstance();
 
+/**
+ * Blink an LED on the device.
+ *
+ * @param gpioNum GPIO number where LED is connected.
+ * @param amount Amount of times to flash the LED.
+ */
+void BlinkLED(gpio_num_t gpioNum, int amount)
+{
+	auto level = gpio_get_level(gpioNum);
+
+	for (int i = 0; i < amount * 2; i++)
+	{
+		// Flip level
+		level ^= 1;
+
+		gpio_set_level(gpioNum, level);
+		vTaskDelay(200 / portTICK_PERIOD_MS);
+	}
+}
+
 //function to read P1 port and store message in a buffer
 void readP1Task(void *taskInfo) {
 	// Add formatters for all the measurements.
@@ -37,6 +57,7 @@ void readP1Task(void *taskInfo) {
 
 	if (result.dsmrVersion == P1_UNKNOWN) {
 		ESP_LOGI("P1", "incorrect p1 message");
+		BlinkLED(RED_LED_D1_ERROR, 2);
 	} else {
 		time_t e_time_t;
 		if  (result.dsmrVersion < 4.0) {
@@ -90,6 +111,8 @@ void readP1Task(void *taskInfo) {
 			Measurements::Measurement g_use_cum__m3("g_use_cum__m3", result.g_use_cum__m3);
 			secureUploadQueue.AddMeasurement(g_use_cum__m3);
 		}
+		BlinkLED(GREEN_LED_D2_STATUS, 2);
+
 	}
 }
 
