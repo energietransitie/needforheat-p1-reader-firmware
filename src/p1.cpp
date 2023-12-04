@@ -63,6 +63,13 @@ std::string hexToNormalString(const char* hexString) {
 //function to read P1 port and store message in a buffer
 void readP1Task(void *taskInfo) {
 	// Add formatters for all the measurements.
+	Measurements::Measurement::AddFormatter("e_use_lo_cum__kWh", "%.3f");
+	Measurements::Measurement::AddFormatter("e_use_hi_cum__kWh", "%.3f");
+	Measurements::Measurement::AddFormatter("e_ret_lo_cum__kWh", "%.3f");
+	Measurements::Measurement::AddFormatter("e_ret_hi_cum__kWh", "%.3f");
+	Measurements::Measurement::AddFormatter("g_use_cum__m3", "%.3f"); 
+	Measurements::Measurement::AddFormatter("dsmr_version__0", "%.1f");
+	Measurements::Measurement::AddFormatter("meter_code__str", "%s");
 
 	uint16_t e_meter_interval__s = 10; 			// 10 [s]
 	uint16_t g_meter_interval__s = 1 * 60 * 60; 	// 1 [h] * 60 [min/h] * 60 [s/min]
@@ -78,14 +85,6 @@ void readP1Task(void *taskInfo) {
 		ESP_LOGI("P1", "incorrect p1 message");
 		BlinkLED(RED_LED_D1_ERROR, 2);
 	} else {
-		// Add formatters for all the measurements.
-		Measurements::Measurement::AddFormatter("e_use_lo_cum__kWh", "%.3f");
-		Measurements::Measurement::AddFormatter("e_use_hi_cum__kWh", "%.3f");
-		Measurements::Measurement::AddFormatter("e_ret_lo_cum__kWh", "%.3f");
-		Measurements::Measurement::AddFormatter("e_ret_hi_cum__kWh", "%.3f");
-		Measurements::Measurement::AddFormatter("g_use_cum__m3", "%.3f"); 
-		Measurements::Measurement::AddFormatter("dsmr_version__0", "%.1f");
-
 		time_t e_time_t = TIME_UNKNOWN;
 		if  (result.dsmrVersion >= 4.0) {
 			std::string eTimestampStr(result.dsmrTimestamp_e);
@@ -108,7 +107,6 @@ void readP1Task(void *taskInfo) {
 		if (meter_code.empty()) {
 			ESP_LOGE("P1", "meter code (hex-decoded): is empty!");
 		} else {
-			Measurements::Measurement::AddFormatter("meter_code__str", "%s");
 			ESP_LOGD("P1", "meter code (hex-decoded): %s", meter_code.c_str());
 		}
 
