@@ -8,32 +8,13 @@
 #include <dsmr_timestampTest.hpp>
 
 // ESP-IDF drivers:
+#include <generic_esp_32.hpp>
 #include <scheduler.hpp>
 #include <secure_upload.hpp>
 #include <measurements.hpp>
 #include <util/error.hpp>
 
 auto secureUploadQueue = SecureUpload::Queue::GetInstance();
-
-/**
- * Blink an LED on the device.
- *
- * @param gpioNum GPIO number where LED is connected.
- * @param amount Amount of times to flash the LED.
- */
-void BlinkLED(gpio_num_t gpioNum, int amount)
-{
-	auto level = gpio_get_level(gpioNum);
-
-	for (int i = 0; i < amount * 2; i++)
-	{
-		// Flip level
-		level ^= 1;
-
-		gpio_set_level(gpioNum, level);
-		vTaskDelay(200 / portTICK_PERIOD_MS);
-	}
-}
 
 std::string hexToNormalString(const char *hexString)
 {
@@ -90,7 +71,7 @@ void readP1Task(void *taskInfo)
 	if (result.dsmrVersion == P1_UNKNOWN)
 	{
 		ESP_LOGI("P1", "incorrect p1 message");
-		BlinkLED(RED_LED_D1_ERROR, 2);
+		GenericESP32Firmware::BlinkLED(RED_LED_D1_ERROR, 2);
 	}
 
 	time_t e_time_t = TIME_UNKNOWN;
@@ -181,5 +162,5 @@ void readP1Task(void *taskInfo)
 		Measurements::Measurement g_use_cum__m3("g_use_cum__m3", result.g_use_cum__m3);
 		secureUploadQueue.AddMeasurement(g_use_cum__m3);
 	}
-	BlinkLED(GREEN_LED_D2_STATUS, 2);
+	GenericESP32Firmware::BlinkLED(GREEN_LED_D2_STATUS, 2);
 }
