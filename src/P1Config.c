@@ -240,6 +240,14 @@ int p1StringToStruct(const char *p1String, P1Data *p1Struct) {
         else {
             p1Struct->dsmrTimestamp_g[12] = 0; //Add a null terminator to print it as a string
         }
+        //meter code OBIS: 0-0:42.0.0 
+        if (extractValue(p1String, "0-0:42.0.0(%10s", &p1Struct->meter_code__hex) != 1) {
+            return P1_ERROR_METER_CODE_NOT_FOUND;
+        }
+        else {
+            p1Struct->meter_code__hex[10] = '\0'; //add a zero terminator at the end to read as string
+        }
+
     } else if (p1Struct->dsmrVersion < 4.0) {
         //DSMR3 smart meters
         ESP_LOGI("DSMR", "version 3");
@@ -266,7 +274,17 @@ int p1StringToStruct(const char *p1String, P1Data *p1Struct) {
         } else { 
             // Handle case when ":24.2.1)(m3)" is not found
             return P1_ERROR_GAS_READING_NOT_FOUND;
+        
         }
+
+        //meter code OBIS: 0-0:96.1.1
+        if (extractValue(p1String, "0-0:96.1.1(%10s", &p1Struct->meter_code__hex) != 1) {
+            return P1_ERROR_METER_CODE_NOT_FOUND;
+        }
+        else {
+            p1Struct->meter_code__hex[10] = '\0'; //add a zero terminator at the end to read as string
+        }
+
     } else {
         // DSMR4 or newer smart meters
         ESP_LOGI("DSMR", "version 4 or newer");
@@ -286,6 +304,14 @@ int p1StringToStruct(const char *p1String, P1Data *p1Struct) {
         else {
             p1Struct->dsmrTimestamp_g[13] = 0; //Add a null terminator to print it as a string
         }
+
+        //meter code OBIS: 0-0:96.1.1
+        if (extractValue(p1String, "0-0:96.1.1(%10s", &p1Struct->meter_code__hex) != 1) {
+            return P1_ERROR_METER_CODE_NOT_FOUND;
+        }
+        else {
+            p1Struct->meter_code__hex[10] = '\0'; //add a zero terminator at the end to read as string
+        }
     }
 
     //If none of the statements reached an "else" all measurements were read correctly!
@@ -300,7 +326,8 @@ int p1StringToStruct(const char *p1String, P1Data *p1Struct) {
  *
  */
 void printP1Data(P1Data *p1Struct) {
-    ESP_LOGI("P1 Print", "DSMR VERSION: %.1f", p1Struct->dsmrVersion);
+    ESP_LOGI("P1 Print", "meter_code__hex: %s", p1Struct->meter_code__hex);
+    ESP_LOGI("P1 Print", "dsmr_version__0: %.1f", p1Struct->dsmrVersion);
     if(getBaudrate__b_s_1() == 9600) {
         //dsmr2/3 smart meters
         ESP_LOGI("P1 Print", "DSMR2/3: no ELEC TIMESTAMP");

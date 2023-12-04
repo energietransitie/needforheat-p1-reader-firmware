@@ -30,8 +30,10 @@ The Twomes P1 Reader, in addition to [generic data sent by any Twomes measuremen
 | P1 port   | `e_use_hi_cum__kWh`         | kWh   | %.3f   | 0:10:00           | electricity meter reading                        |
 | P1 port   | `e_ret_lo_cum__kWh`         | kWh   | %.3f   | 0:10:00           | electricity meter reading                        |
 | P1 port   | `e_ret_hi_cum__kWh`         | kWh   | %.3f   | 0:10:00           | electricity meter reading                        |
-| P1 port   | `g_use_cum__m3`         |  m<sup>3</sup>  | %.3f   | 0:10:00           | gas meter reading                        |
-| Bluetooth  | `occupancy__p`         | [-]   | %u   | 0:10:00           | number of smartphones responding to Bluetooth name request                        |
+| P1 port   | `g_use_cum__m3`             |  m<sup>3</sup> | %.3f  | 0:10:00   | gas meter reading                                |
+| P1 port   | `dsmr_version__0`           | [-]     | %.1f   | 0:10:00           | DSMR version                                     |
+| P1 port   | `meter_code__str`           | [-]     | %s     | 0:10:00           | [smart meter code](https://github.com/energietransitie/dsmr-info/blob/main/dsmr-e-meters.csv) (the type, not the unique identifier)      |
+| Bluetooth  | `occupancy__p`         | [-]   | %u   | 0:10:00           | number of smartphones responding to Bluetooth name request (only if enabled compile time)                       |
 
 ## Deploying 
 
