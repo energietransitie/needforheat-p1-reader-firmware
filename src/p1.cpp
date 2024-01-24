@@ -72,6 +72,8 @@ void readP1Task(void *taskInfo)
 	{
 		ESP_LOGI("P1", "incorrect p1 message");
 		GenericESP32Firmware::BlinkLED(RED_LED_D1_ERROR, 2);
+		// Exit the function early since there is no good data
+        return;
 	}
 
 	time_t e_time_t = TIME_UNKNOWN;
