@@ -108,7 +108,11 @@ int extractValue(const char *p1String, const char *pattern, void *valuePtr) {
     snprintf(shortenedPattern, sizeof(shortenedPattern), "%.*s", (int)shortenedPatternLength, pattern);
     
     char *pos = strstr(p1String, shortenedPattern);
-    if (pos == NULL || sscanf(pos, pattern, valuePtr) != 1) {
+    if (pos == NULL) {
+        ESP_LOGE("pattern value not found", "pattern: %s, p1String: NULL", pattern);
+        return -1; // Value not found or couldn't be parsed
+    }
+    if (sscanf(pos, pattern, valuePtr) != 1) {
         ESP_LOGE("pattern value not found", "pattern: %s, in p1String: %s", pattern, pos);
         return -1; // Value not found or couldn't be parsed
     }
@@ -127,7 +131,11 @@ int extract2Values(const char *p1String, const char *pattern, void *valuePtr1, v
     snprintf(shortenedPattern, sizeof(shortenedPattern), "%.*s", (int)shortenedPatternLength, pattern);
 
     char *pos = strstr(p1String, shortenedPattern);
-    if (pos == NULL || sscanf(pos, pattern, valuePtr1, valuePtr2) != 2) {
+    if (pos == NULL) {
+        ESP_LOGE("pattern value not found", "pattern: %s, p1String: NULL", pattern);
+        return -1; // Value not found or couldn't be parsed
+    }
+    if (sscanf(pos, pattern, valuePtr1, valuePtr2) != 2) {
         ESP_LOGE("pattern values not found", "pattern: %s, in p1String: %s", pattern, pos);
         return -1; // Values not found or couldn't be parsed
     }
@@ -146,11 +154,41 @@ int extract3Values(const char *p1String, const char *pattern, void *valuePtr1, v
     snprintf(shortenedPattern, sizeof(shortenedPattern), "%.*s", (int)shortenedPatternLength, pattern);
 
     char *pos = strstr(p1String, shortenedPattern);
-    if (pos == NULL || sscanf(pos, pattern, valuePtr1, valuePtr2) != 3) {
+    if (pos == NULL) {
+        ESP_LOGE("pattern value not found", "pattern: %s, p1String: NULL", pattern);
+        return -1; // Value not found or couldn't be parsed
+    }
+    if (sscanf(pos, pattern, valuePtr1, valuePtr2) != 3) {
         ESP_LOGE("pattern values not found", "pattern: %s, in p1String: %s", pattern, pos);
         return -1; // Values not found or couldn't be parsed
     }
     return 3; // Success
+}
+
+void initializeP1Data(P1Data* data) {
+    // Set numeric fields to "unknown" value
+    data->dsmrVersion = P1_UNKNOWN;
+    data->e_use_lo_cum__kWh = P1_UNKNOWN;
+    data->e_use_hi_cum__kWh = P1_UNKNOWN;
+    data->e_ret_lo_cum__kWh = P1_UNKNOWN;
+    data->e_ret_hi_cum__kWh = P1_UNKNOWN;
+    data->g_use_cum__m3 = P1_UNKNOWN;
+
+    // Set character arrays to an "unknown" value or initialize them as needed
+    for (int i = 0; i < sizeof(data->dsmrTimestamp_e) - 1; ++i) {
+        data->dsmrTimestamp_e[i] = 'X';
+    }
+    data->dsmrTimestamp_e[sizeof(data->dsmrTimestamp_e) - 1] = '\0';
+
+    for (int i = 0; i < sizeof(data->dsmrTimestamp_g) - 1; ++i) {
+        data->dsmrTimestamp_g[i] = 'X';
+    }
+    data->dsmrTimestamp_g[sizeof(data->dsmrTimestamp_g) - 1] = '\0';
+
+    for (int i = 0; i < sizeof(data->meter_code__hex) - 1; ++i) {
+        data->meter_code__hex[i] = 'X';
+    }
+    data->meter_code__hex[sizeof(data->meter_code__hex) - 1] = '\0';
 }
 
 /**
@@ -172,7 +210,7 @@ int p1StringToStruct(const char *p1String, P1Data *p1Struct) {
 
     unsigned int n;
     
-    p1Struct->dsmrVersion = P1_UNKNOWN;
+    initializeP1Data(&p1Struct);
 
     //DSMR version: OBIS reference 1-3:0.2.8
     if (getBaudrate__b_s_1() == 9600) {
