@@ -108,12 +108,8 @@ int extractValue(const char *p1String, const char *pattern, void *valuePtr) {
     snprintf(shortenedPattern, sizeof(shortenedPattern), "%.*s", (int)shortenedPatternLength, pattern);
     
     char *pos = strstr(p1String, shortenedPattern);
-    if (pos == NULL) {
-        ESP_LOGE("pattern value not found", "pattern: %s, p1String: NULL", pattern);
-        return -1; // Value not found or couldn't be parsed
-    }
-    if (sscanf(pos, pattern, valuePtr) != 1) {
-        ESP_LOGE("pattern value not found", "pattern: %s, in p1String: %s", pattern, pos);
+    if (pos == NULL || sscanf(pos, pattern, valuePtr) != 1) {
+        ESP_LOGE("pattern value not found", "pattern: %s, in p1String: %s", pattern, p1String);
         return -1; // Value not found or couldn't be parsed
     }
     return 1; // Success
@@ -131,12 +127,8 @@ int extract2Values(const char *p1String, const char *pattern, void *valuePtr1, v
     snprintf(shortenedPattern, sizeof(shortenedPattern), "%.*s", (int)shortenedPatternLength, pattern);
 
     char *pos = strstr(p1String, shortenedPattern);
-    if (pos == NULL) {
-        ESP_LOGE("pattern value not found", "pattern: %s, p1String: NULL", pattern);
-        return -1; // Value not found or couldn't be parsed
-    }
-    if (sscanf(pos, pattern, valuePtr1, valuePtr2) != 2) {
-        ESP_LOGE("pattern values not found", "pattern: %s, in p1String: %s", pattern, pos);
+    if (pos == NULL || sscanf(pos, pattern, valuePtr1, valuePtr2) != 2) {
+        ESP_LOGE("pattern values not found", "pattern: %s, in p1String: %s", pattern, p1String);
         return -1; // Values not found or couldn't be parsed
     }
     return 2; // Success
@@ -154,18 +146,15 @@ int extract3Values(const char *p1String, const char *pattern, void *valuePtr1, v
     snprintf(shortenedPattern, sizeof(shortenedPattern), "%.*s", (int)shortenedPatternLength, pattern);
 
     char *pos = strstr(p1String, shortenedPattern);
-    if (pos == NULL) {
-        ESP_LOGE("pattern value not found", "pattern: %s, p1String: NULL", pattern);
-        return -1; // Value not found or couldn't be parsed
-    }
-    if (sscanf(pos, pattern, valuePtr1, valuePtr2) != 3) {
-        ESP_LOGE("pattern values not found", "pattern: %s, in p1String: %s", pattern, pos);
+    if (pos == NULL || sscanf(pos, pattern, valuePtr1, valuePtr2) != 3) {
+        ESP_LOGE("pattern values not found", "pattern: %s, in p1String: %s", pattern, p1String);
         return -1; // Values not found or couldn't be parsed
     }
     return 3; // Success
 }
 
 void initializeP1Data(P1Data* data) {
+    ESP_LOGD("initializeP1Data", "started");
     // Set numeric fields to "unknown" value
     data->dsmrVersion = P1_UNKNOWN;
     data->e_use_lo_cum__kWh = P1_UNKNOWN;
@@ -173,22 +162,13 @@ void initializeP1Data(P1Data* data) {
     data->e_ret_lo_cum__kWh = P1_UNKNOWN;
     data->e_ret_hi_cum__kWh = P1_UNKNOWN;
     data->g_use_cum__m3 = P1_UNKNOWN;
+    ESP_LOGD("initializeP1Data", "numbers done");
 
-    // Set character arrays to an "unknown" value or initialize them as needed
-    for (int i = 0; i < sizeof(data->dsmrTimestamp_e) - 1; ++i) {
-        data->dsmrTimestamp_e[i] = 'X';
-    }
-    data->dsmrTimestamp_e[sizeof(data->dsmrTimestamp_e) - 1] = '\0';
-
-    for (int i = 0; i < sizeof(data->dsmrTimestamp_g) - 1; ++i) {
-        data->dsmrTimestamp_g[i] = 'X';
-    }
-    data->dsmrTimestamp_g[sizeof(data->dsmrTimestamp_g) - 1] = '\0';
-
-    for (int i = 0; i < sizeof(data->meter_code__hex) - 1; ++i) {
-        data->meter_code__hex[i] = 'X';
-    }
-    data->meter_code__hex[sizeof(data->meter_code__hex) - 1] = '\0';
+    // Set character arrays to an empty string value
+    data->dsmrTimestamp_e[0] = '\0';
+    data->dsmrTimestamp_g[0] = '\0';
+    //data->meter_code__hex[0] = '\0';
+    ESP_LOGD("initializeP1Data", "strings done");
 }
 
 /**
@@ -210,8 +190,6 @@ int p1StringToStruct(const char *p1String, P1Data *p1Struct) {
 
     unsigned int n;
     
-    initializeP1Data(&p1Struct);
-
     //DSMR version: OBIS reference 1-3:0.2.8
     if (getBaudrate__b_s_1() == 9600) {
         ESP_LOGI("baudrate", "9600");
@@ -272,12 +250,7 @@ int p1StringToStruct(const char *p1String, P1Data *p1Struct) {
     if (p1Struct->dsmrVersion < 3.0) {
         //DSMR2 smart meters
         ESP_LOGI("DSMR", "version 2");
-        if (extract3Values(p1String,"7-0:23.%u.0(%12s)(%lf)", &n, &p1Struct->dsmrTimestamp_g, &p1Struct->g_use_cum__m3) !=3) {;
-            return P1_ERROR_GAS_READING_NOT_FOUND;
-        }
-        else {
-            p1Struct->dsmrTimestamp_g[12] = 0; //Add a null terminator to print it as a string
-        }
+
         //meter code OBIS: 0-0:42.0.0 
         if (extractValue(p1String, "0-0:42.0.0(%10s", &p1Struct->meter_code__hex) != 1) {
             return P1_ERROR_METER_CODE_NOT_FOUND;
@@ -286,16 +259,32 @@ int p1StringToStruct(const char *p1String, P1Data *p1Struct) {
             p1Struct->meter_code__hex[10] = '\0'; //add a zero terminator at the end to read as string
         }
 
+        if (extract3Values(p1String,"7-0:23.%u.0(%12s)(%lf)", &n, &p1Struct->dsmrTimestamp_g, &p1Struct->g_use_cum__m3) !=3) {;
+            return P1_ERROR_GAS_READING_NOT_FOUND;
+        }
+        else {
+            p1Struct->dsmrTimestamp_g[12] = 0; //Add a null terminator to print it as a string
+        }
+
     } else if (p1Struct->dsmrVersion < 4.0) {
         //DSMR3 smart meters
         ESP_LOGI("DSMR", "version 3");
+
+        //meter code OBIS: 0-0:96.1.1
+        if (extractValue(p1String, "0-0:96.1.1(%10s", &p1Struct->meter_code__hex) != 1) {
+            return P1_ERROR_METER_CODE_NOT_FOUND;
+        }
+        else {
+            p1Struct->meter_code__hex[10] = '\0'; //add a zero terminator at the end to read as string
+        }
+
         //Gas reading OBIS: 0-n:24.3.0 //n can vary depending on which channel it is installed
         if (extractValue(p1String, ":24.3.0(%12s)", &p1Struct->dsmrTimestamp_g) !=1) {
             return P1_ERROR_GAS_READING_NOT_FOUND;
         } else {
             p1Struct->dsmrTimestamp_g[12] = '\0'; //add a zero terminator at the end to read as string
         }
-
+        
         char *pos_g_use_cum__m3 = strstr(p1String, ":24.2.1)(m3)");
         if (pos_g_use_cum__m3 != NULL) {
             // Move past ":24.2.1)(m3)"
@@ -315,6 +304,11 @@ int p1StringToStruct(const char *p1String, P1Data *p1Struct) {
         
         }
 
+
+    } else {
+        // DSMR4 or newer smart meters
+        ESP_LOGI("DSMR", "version 4 or newer");
+
         //meter code OBIS: 0-0:96.1.1
         if (extractValue(p1String, "0-0:96.1.1(%10s", &p1Struct->meter_code__hex) != 1) {
             return P1_ERROR_METER_CODE_NOT_FOUND;
@@ -322,10 +316,6 @@ int p1StringToStruct(const char *p1String, P1Data *p1Struct) {
         else {
             p1Struct->meter_code__hex[10] = '\0'; //add a zero terminator at the end to read as string
         }
-
-    } else {
-        // DSMR4 or newer smart meters
-        ESP_LOGI("DSMR", "version 4 or newer");
 
         //elec Timestamp OBIS reference 
         if (extractValue(p1String, "0-0:1.0.0(%13s)", &p1Struct->dsmrTimestamp_e) != 1) {
@@ -343,13 +333,6 @@ int p1StringToStruct(const char *p1String, P1Data *p1Struct) {
             p1Struct->dsmrTimestamp_g[13] = 0; //Add a null terminator to print it as a string
         }
 
-        //meter code OBIS: 0-0:96.1.1
-        if (extractValue(p1String, "0-0:96.1.1(%10s", &p1Struct->meter_code__hex) != 1) {
-            return P1_ERROR_METER_CODE_NOT_FOUND;
-        }
-        else {
-            p1Struct->meter_code__hex[10] = '\0'; //add a zero terminator at the end to read as string
-        }
     }
 
     //If none of the statements reached an "else" all measurements were read correctly!
@@ -422,6 +405,7 @@ P1Data p1Read()
     int32_t baudrate__b_s_1 = P1_UNKNOWN;
     //create struct
     P1Data p1Measurements;
+    initializeP1Data(&p1Measurements);
 
     if (!uartInit)
     {
@@ -517,12 +501,9 @@ P1Data p1Read()
                     //extract the necessary data from the P1 payload into the struct and check for errors while decoding
                     int result = p1StringToStruct((const char *)p1Message, &p1Measurements);
 
-                    if (result == P1_READ_OK) {
-                        //Print the data from the struct to monitor for debugging:
-                        printP1Data(&p1Measurements);              
-                    }
-                    else {
-                        //If a measurement could not be read, print to serial terminal which one was (the first that was) missing
+                    //Print the data from the struct to monitor for debugging:
+                    printP1Data(&p1Measurements);              
+                    if (result != P1_READ_OK) {
                         printP1Error(result);
                     }
                 }
