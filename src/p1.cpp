@@ -72,6 +72,8 @@ void readP1Task(void *taskInfo)
 	{
 		ESP_LOGI("P1", "incorrect p1 message");
 		GenericESP32Firmware::BlinkLED(RED_LED_D1_ERROR, 2);
+		// Exit the function early since there is no good data
+        return;
 	}
 
 	time_t e_time_t = TIME_UNKNOWN;
@@ -153,13 +155,6 @@ void readP1Task(void *taskInfo)
 	{
 		// only upload gas meter values if the timestamp is proper (e.g., not when result.timeGasMeasurement == "632525252525S")
 		Measurements::Measurement g_use_cum__m3("g_use_cum__m3", result.g_use_cum__m3, g_time_t);
-		secureUploadQueue.AddMeasurement(g_use_cum__m3);
-	}
-	else if (result.dsmrVersion >= 5.0)
-	{
-		// for DSMR5, device timestamps are at most 5 minutes old; using device timestamps as second best seems acceptible
-		// for DSMR4 and lower, they can be an hour old; using device timestamps would require too much post processing
-		Measurements::Measurement g_use_cum__m3("g_use_cum__m3", result.g_use_cum__m3);
 		secureUploadQueue.AddMeasurement(g_use_cum__m3);
 	}
 	GenericESP32Firmware::BlinkLED(GREEN_LED_D2_STATUS, 2);
