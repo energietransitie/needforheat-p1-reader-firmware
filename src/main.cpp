@@ -10,7 +10,7 @@
 #include <dsmr_timestampTest.hpp>
 #endif
 
-constexpr const char *DEVICE_TYPE_NAME = "twomes-p1-reader-firmware";
+constexpr const char *DEVICE_TYPE_NAME = "needforheat-p1-reader-firmware";
 
 constexpr const gpio_num_t BUTTON_WIFI_RESET = GPIO_NUM_12;
 constexpr const gpio_num_t LED_WIFI_RESET = GPIO_NUM_14;
@@ -49,7 +49,7 @@ extern "C" void app_main(void)
 
 	GenericESP32Firmware::SetResetWirelessLED(LED_WIFI_RESET);
 
-#ifdef CONFIG_TWOMES_STRESS_TEST
+#ifdef CONFIG_NFH_STRESS_TEST
 	Scheduler::AddTask(readP1Task, "uart_read_p1", 16384, NULL, 10, Scheduler::Interval::MINUTES_2);
 #else
 	Scheduler::AddTask(readP1Task, "uart_read_p1", 16384, NULL, 10, Scheduler::Interval::MINUTES_10);

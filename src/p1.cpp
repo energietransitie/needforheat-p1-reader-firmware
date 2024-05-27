@@ -60,7 +60,7 @@ void readP1Task(void *taskInfo)
 
 	uint16_t e_meter_interval__s = 10;			// 10 [s]
 	uint16_t g_meter_interval__s = 1 * 60 * 60; // 1 [h] * 60 [min/h] * 60 [s/min]
-#ifdef CONFIG_TWOMES_STRESS_TEST
+#ifdef CONFIG_NFH_STRESS_TEST
 	uint16_t parse_interval__s = static_cast<int>(Scheduler::Interval::MINUTES_2);
 #else
 	uint16_t parse_interval__s = static_cast<int>(Scheduler::Interval::MINUTES_10);
